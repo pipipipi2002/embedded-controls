@@ -3,6 +3,8 @@
 BUILD_DIR := build
 BUILD_TYPE ?= Debug
 
+BIN_FILE := ${BUILD_DIR}/embedded-controls.bin
+
 all: build
 
 ${BUILD_DIR}/Makefile:
@@ -22,6 +24,14 @@ format: $(addsuffix .format,${SRCS})
 
 %.format: %
 	clang-format -i $<
+
+${BIN_FILE}:
+	@echo "Error: Binary file not found: ${BIN_FILE}"
+	@exit 1
+
+stflash: ${BIN_FILE}
+	@echo "Flashing Binary File: ${BIN_FILE}"
+	st-flash --reset write $< 0x08000000
 
 clean:
 	rm -rf $(BUILD_DIR)
