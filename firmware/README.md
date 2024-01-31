@@ -19,4 +19,4 @@ Press `Ctrl+Shift+B` to bring up the vscode build panel and choose the desired a
 ## Debug 
 Under Debug, there are 2 preconfigured launches, as defined in `vscode/launch.json`. 
 - Debug (with build)
-- Another to flash
+- Attach
