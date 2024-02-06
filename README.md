@@ -1,4 +1,5 @@
 # The Hardware
+- [Interactive BOM](https://pipipipi2002.github.io/embedded-controls/hardware/controls-carier-board/output/interactive_bom.html)
 
 ## MCU
 I will be using the STM32F446VETx Module from [stm32f446vetx-dev-module](https://github.com/pipipipi2002/stm32f446vetx-dev-module)
