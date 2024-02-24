@@ -27,13 +27,15 @@ set(CMAKE_CXX_EXTENSIONS ON)
 # Add the interface libraries
 add_subdirectory(Core)
 add_subdirectory(Drivers)
+add_subdirectory(Lib)
 
 # Executable files
 add_executable(${EXECUTABLE} ${STARTUP_SCRIPT})
 
 target_link_libraries (${EXECUTABLE} 
     stm32f4_hal 
-    embedded-controls-core)
+    embedded-controls-core
+    embedded-controls-lib)
 
 # Embedded macros(defines)
 target_compile_definitions(${EXECUTABLE} PRIVATE

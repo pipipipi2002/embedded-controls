@@ -16,7 +16,6 @@ message(STATUS "STM32F4 HAL include file path: ${STM32F4_HAL_INCLUDE_DIR}")
 
 
 set(STM32F4_HAL_SOURCE_FILES 
-    ${STM32F4_HAL_SOURCE_DIR}/stm32f4xx_hal_can.c
     ${STM32F4_HAL_SOURCE_DIR}/stm32f4xx_hal_cortex.c
     ${STM32F4_HAL_SOURCE_DIR}/stm32f4xx_hal_dma_ex.c
     ${STM32F4_HAL_SOURCE_DIR}/stm32f4xx_hal_dma.c
@@ -29,13 +28,12 @@ set(STM32F4_HAL_SOURCE_FILES
     ${STM32F4_HAL_SOURCE_DIR}/stm32f4xx_hal_pwr.c
     ${STM32F4_HAL_SOURCE_DIR}/stm32f4xx_hal_rcc_ex.c
     ${STM32F4_HAL_SOURCE_DIR}/stm32f4xx_hal_rcc.c
-    ${STM32F4_HAL_SOURCE_DIR}/stm32f4xx_hal_sd.c
     ${STM32F4_HAL_SOURCE_DIR}/stm32f4xx_hal_spi.c
     ${STM32F4_HAL_SOURCE_DIR}/stm32f4xx_hal_tim_ex.c
     ${STM32F4_HAL_SOURCE_DIR}/stm32f4xx_hal_tim.c
     ${STM32F4_HAL_SOURCE_DIR}/stm32f4xx_hal_uart.c
     ${STM32F4_HAL_SOURCE_DIR}/stm32f4xx_hal.c
-    ${STM32F4_HAL_SOURCE_DIR}/stm32f4xx_ll_sdmmc.c )
+)
 
 add_library(${PROJECT_NAME} INTERFACE )
 target_sources(${PROJECT_NAME} INTERFACE ${STM32F4_HAL_SOURCE_FILES} )

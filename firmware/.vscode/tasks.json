@@ -22,7 +22,7 @@
             "group":"build",
             "type": "shell",
             "command": "make",
-            "args": ["stflash"]
+            "args": ["-j8", "stflash"]
         }    
     ]
 }
