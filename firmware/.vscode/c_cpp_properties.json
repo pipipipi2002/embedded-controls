@@ -16,7 +16,7 @@
                 "STM32F446xx"
             ],
             "compilerPath": "/Applications/ArmGNUToolchain/12.3.rel1/arm-none-eabi/bin/arm-none-eabi-gcc",
-            "cStandard": "c99",
+            "cStandard": "c11",
             "cppStandard": "c++14",
             "intelliSenseMode": "gcc-arm",
             "macFrameworkPath": [
