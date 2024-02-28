@@ -55,6 +55,7 @@ target_compile_options(${EXECUTABLE} PRIVATE
     -Wredundant-decls  
     -fno-common  
     -fdata-sections
+    -fno-math-errno
     $<$<COMPILE_LANGUAGE:C>:
         -Wimplicit-function-declaration
         -Wmissing-prototypes 

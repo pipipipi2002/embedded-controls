@@ -50,6 +50,8 @@
 #define INC_BNO08X_H
 
 #include <stdbool.h>
+#include <string.h>
+#include <math.h>
 #include "sh2.h"
 #include "sh2_SensorValue.h"
 #include "sh2_err.h"
@@ -69,8 +71,6 @@
 	#define $ERROR(fmt, ...)    printf("[BNO08X]"); printf(fmt, ##__VA_ARGS__); printf("\n\r")
 	#define $SUCCESS(fmt, ...)  printf("[BNO08X]"); printf(fmt, ##__VA_ARGS__); printf("\n\r")
 #endif 
-
-
 
 //All the ways we can configure or talk to the BNO08x, figure 34, page 36 reference manual
 //These are used for low level communication with the sensor, on channel 2
@@ -137,103 +137,48 @@
 #define TARE_AR_VR_STABILIZED_ROTATION_VECTOR 4
 #define TARE_AR_VR_STABILIZED_GAME_ROTATION_VECTOR 5
 
-extern sh2_ProductId_t prodIds;            // Product ID returned by the sensor
+extern sh2_ProductIds_t prodIds;            // Product ID returned by the sensor
+extern sh2_SensorValue_t sensorValue;
 
-bool BNO08x_init(SPI_HandleTypeDef* spi, uint16_t intPort, uint16_t intPin, uint16_t rstPort, uint16_t rstPin, uint16_t csPort, uint16_t csPin);
+bool BNO08x_init(SPI_HandleTypeDef* spi, GPIO_TypeDef* intPort, uint16_t intPin, GPIO_TypeDef* rstPort, uint16_t rstPin, GPIO_TypeDef* csPort, uint16_t csPin, GPIO_TypeDef* wakePort, uint16_t wakePin);
 void BNO08x_intSet(bool set);
 void BNO08x_hardwareReset(void);
 bool BNO08x_wasReset(void);
 uint8_t BNO08x_getResetReason(void);
-bool BNO08x_enableReport(sh2_SensorId_t sensor, uint32_t interval_us, uint32_t sensorSpecific);
-bool BNO08x_getSensorEvent(sh2_SensorValue_t *value);
+bool BNO08x_enableReport(sh2_SensorId_t sensorId, uint32_t interval_us, uint32_t sensorSpecific);
+bool BNO08x_getSensorEvent(void);
 uint8_t BNO08x_getSensorEventID(void);
-void BNO08x_enableDebugging(void);          //Turn on debug printing. If user doesn't specify then Serial will be used.
+void BNO08x_enableDebugguing(bool debug);
 bool BNO08x_softReset(void);	                //Try to reset the IMU via software
 bool BNO08x_serviceBus(void);	
 bool BNO08x_modeOn(void);	                    //Use the executable channel to turn the BNO on
 bool BNO08x_modeSleep(void);	                //Use the executable channel to put the BNO to sleep
 float BNO08x_qToFloat(int16_t fixedPointValue, uint8_t qPoint); //Given a Q value, converts fixed point floating to regular floating point number
-bool BNO08x_enableRotationVector(uint16_t timeBetweenReports = 10);
-bool BNO08x_enableGeomagneticRotationVector(uint16_t timeBetweenReports = 10);
-bool BNO08x_enableGameRotationVector(uint16_t timeBetweenReports = 10);
+bool BNO08x_enableRotationVector(uint16_t timeBetweenReports);
+bool BNO08x_enableGeomagneticRotationVector(uint16_t timeBetweenReports);
+bool BNO08x_enableGameRotationVector(uint16_t timeBetweenReports);
 bool BNO08x_enableARVRStabilizedRotationVector(uint16_t timeBetweenReports);
 bool BNO08x_enableARVRStabilizedGameRotationVector(uint16_t timeBetweenReports);
-bool BNO08x_enableAccelerometer(uint16_t timeBetweenReports = 10);
-bool BNO08x_enableLinearAccelerometer(uint16_t timeBetweenReports = 10);
-bool BNO08x_enableGravity(uint16_t timeBetweenReports = 10);
-bool BNO08x_enableGyro(uint16_t timeBetweenReports = 10);
-bool BNO08x_enableUncalibratedGyro(uint16_t timeBetweenReports = 10);
-bool BNO08x_enableMagnetometer(uint16_t timeBetweenReports = 10);
+bool BNO08x_enableAccelerometer(uint16_t timeBetweenReports);
+bool BNO08x_enableLinearAccelerometer(uint16_t timeBetweenReports);
+bool BNO08x_enableGravity(uint16_t timeBetweenReports);
+bool BNO08x_enableGyro(uint16_t timeBetweenReports);
+bool BNO08x_enableUncalibratedGyro(uint16_t timeBetweenReports);
+bool BNO08x_enableMagnetometer(uint16_t timeBetweenReports);
 bool BNO08x_enableTapDetector(uint16_t timeBetweenReports);
-bool BNO08x_enableStepCounter(uint16_t timeBetweenReports = 10);
-bool BNO08x_enableStabilityClassifier(uint16_t timeBetweenReports = 10);
-bool BNO08x_enableActivityClassifier(uint16_t timeBetweenReports, uint32_t activitiesToEnable);
-bool BNO08x_enableRawAccelerometer(uint16_t timeBetweenReports = 10);
-bool BNO08x_enableRawGyro(uint16_t timeBetweenReports = 10);
-bool BNO08x_enableRawMagnetometer(uint16_t timeBetweenReports = 10);
-bool BNO08x_enableGyroIntegratedRotationVector(uint16_t timeBetweenReports = 10);
-void BNO08x_getQuat(float &i, float &j, float &k, float &real, float &radAccuracy, uint8_t &accuracy);
-float BNO08x_getQuatI(void);
-float BNO08x_getQuatJ(void);
-float BNO08x_getQuatK(void);
-float BNO08x_getQuatReal(void);
-float BNO08x_getQuatRadianAccuracy(void);
-uint8_t BNO08x_getQuatAccuracy(void);
-float BNO08x_getGameQuatI(void);
-float BNO08x_getGameQuatJ(void);
-float BNO08x_getGameQuatK(void);
-float BNO08x_getGameQuatReal(void);	
-void BNO08x_getAccel(float &x, float &y, float &z, uint8_t &accuracy);
-float BNO08x_getAccelX(void);
-float BNO08x_getAccelY(void);
-float BNO08x_getAccelZ(void);
-uint8_t BNO08x_getAccelAccuracy(void);
-void BNO08x_getLinAccel(float &x, float &y, float &z, uint8_t &accuracy);
-float BNO08x_getLinAccelX(void);
-float BNO08x_getLinAccelY(void);
-float BNO08x_getLinAccelZ(void);
-uint8_t BNO08x_getLinAccelAccuracy(void);
-void BNO08x_getGyro(float &x, float &y, float &z, uint8_t &accuracy);
-float BNO08x_getGyroX(void);
-float BNO08x_getGyroY(void);
-float BNO08x_getGyroZ(void);
-uint8_t BNO08x_getGyroAccuracy(void);
-void BNO08x_getUncalibratedGyro(float &x, float &y, float &z, float &bx, float &by, float &bz, uint8_t &accuracy);
-float BNO08x_getUncalibratedGyroX(void);
-float BNO08x_getUncalibratedGyroY(void);
-float BNO08x_getUncalibratedGyroZ(void);
-float BNO08x_getUncalibratedGyroBiasX(void);
-float BNO08x_getUncalibratedGyroBiasY(void);
-float BNO08x_getUncalibratedGyroBiasZ(void);
-uint8_t BNO08x_getUncalibratedGyroAccuracy(void);
-float BNO08x_getGyroIntegratedRVI(void);
-float BNO08x_getGyroIntegratedRVJ(void);
-float BNO08x_getGyroIntegratedRVK(void);
-float BNO08x_getGyroIntegratedRVReal(void);
-float BNO08x_getGyroIntegratedRVangVelX(void);
-float BNO08x_getGyroIntegratedRVangVelY(void);
-float BNO08x_getGyroIntegratedRVangVelZ(void);
-void BNO08x_getMag(float &x, float &y, float &z, uint8_t &accuracy);
-float BNO08x_getMagX(void);
-float BNO08x_getMagY(void);
-float BNO08x_getMagZ(void);
-uint8_t BNO08x_getMagAccuracy(void);
-void BNO08x_getGravity(float &x, float &y, float &z, uint8_t &accuracy);
-float BNO08x_getGravityX(void);
-float BNO08x_getGravityY(void);
-float BNO08x_getGravityZ(void);
-uint8_t BNO08x_getGravityAccuracy(void);
+bool BNO08x_enableStepCounter(uint16_t timeBetweenReports);
+bool BNO08x_enableStabilityClassifier(uint16_t timeBetweenReports);
+bool BNO08x_enableActivityClassifier(uint16_t timeBetweenReports, uint32_t activitiesToE);
+bool BNO08x_enableRawAccelerometer(uint16_t timeBetweenReports);
+bool BNO08x_enableRawGyro(uint16_t timeBetweenReports);
+bool BNO08x_enableRawMagnetometer(uint16_t timeBetweenReports);
+bool BNO08x_enableGyroIntegratedRotationVector(uint16_t timeBetweenReports);
 bool BNO08x_setCalibrationConfig(uint8_t sensors);
 bool BNO08x_saveCalibration(void);
-bool BNO08x_tareNow(bool zAxis=false, sh2_TareBasis_t basis=SH2_TARE_BASIS_ROTATION_VECTOR);
+bool BNO08x_tareNow(bool zAxis, sh2_TareBasis_t basis);
 bool BNO08x_saveTare(void);
 bool BNO08x_clearTare(void);
-uint8_t BNO08x_getTapDetector(void);
-uint64_t BNO08x_getTimeStamp(void);
-uint16_t BNO08x_getStepCount(void);
-uint8_t BNO08x_getStabilityClassifier(void);
-uint8_t BNO08x_getActivityClassifier(void);
-uint8_t BNO08x_getActivityConfidence(uint8_t activity);
+
 int16_t BNO08x_getRawAccelX(void);
 int16_t BNO08x_getRawAccelY(void);
 int16_t BNO08x_getRawAccelZ(void);
@@ -243,8 +188,78 @@ int16_t BNO08x_getRawGyroZ(void);
 int16_t BNO08x_getRawMagX(void);
 int16_t BNO08x_getRawMagY(void);
 int16_t BNO08x_getRawMagZ(void);
+
+void BNO08x_getAccel(float *x, float *y, float *z, uint8_t *accuracy);
+float BNO08x_getAccelX(void);
+float BNO08x_getAccelY(void);
+float BNO08x_getAccelZ(void);
+uint8_t BNO08x_getAccelAccuracy(void);
+
+void BNO08x_getLinAccel(float *x, float *y, float *z, uint8_t *accuracy);
+float BNO08x_getLinAccelX(void);
+float BNO08x_getLinAccelY(void);
+float BNO08x_getLinAccelZ(void);
+uint8_t BNO08x_getLinAccelAccuracy(void);
+
+void BNO08x_getGyro(float *x, float *y, float *z, uint8_t *accuracy);
+float BNO08x_getGyroX(void);
+float BNO08x_getGyroY(void);
+float BNO08x_getGyroZ(void);
+uint8_t BNO08x_getGyroAccuracy(void);
+
+void BNO08x_getUncalibratedGyro(float *x, float *y, float *z, float *bx, float *by, float *bz, uint8_t *accuracy);
+float BNO08x_getUncalibratedGyroX(void);
+float BNO08x_getUncalibratedGyroY(void);
+float BNO08x_getUncalibratedGyroZ(void);
+float BNO08x_getUncalibratedGyroBiasX(void);
+float BNO08x_getUncalibratedGyroBiasY(void);
+float BNO08x_getUncalibratedGyroBiasZ(void);
+uint8_t BNO08x_getUncalibratedGyroAccuracy(void);
+
+void BNO08x_getMag(float *x, float *y, float *z, uint8_t *accuracy);
+float BNO08x_getMagX(void);
+float BNO08x_getMagY(void);
+float BNO08x_getMagZ(void);
+uint8_t BNO08x_getMagAccuracy(void);
+
+void BNO08x_getGravity(float *x, float *y, float *z, uint8_t *accuracy);
+float BNO08x_getGravityX(void);
+float BNO08x_getGravityY(void);
+float BNO08x_getGravityZ(void);
+uint8_t BNO08x_getGravityAccuracy(void);
+
+void BNO08x_getRollPitchYaw(float* roll, float* pitch, float* yaw);
 float BNO08x_getRoll(void);
 float BNO08x_getPitch(void);
 float BNO08x_getYaw(void);
+
+void BNO08x_getQuat(float *i, float *j, float *k, float *real, float *radAccuracy, uint8_t *accuracy);
+float BNO08x_getQuatI(void);
+float BNO08x_getQuatJ(void);
+float BNO08x_getQuatK(void);
+float BNO08x_getQuatReal(void);
+float BNO08x_getQuatRadianAccuracy(void);
+uint8_t BNO08x_getQuatAccuracy(void);
+
+float BNO08x_getGameQuatI(void);
+float BNO08x_getGameQuatJ(void);
+float BNO08x_getGameQuatK(void);
+float BNO08x_getGameQuatReal(void);	
+
+void BNO08x_getGyroIntegratedRV(float *i, float *j, float *k, float *real, float *avx, float *avy, float *avz);
+float BNO08x_getGyroIntegratedRVI(void);
+float BNO08x_getGyroIntegratedRVJ(void);
+float BNO08x_getGyroIntegratedRVK(void);
+float BNO08x_getGyroIntegratedRVReal(void);
+float BNO08x_getGyroIntegratedRVangVelX(void);
+float BNO08x_getGyroIntegratedRVangVelY(void);
+float BNO08x_getGyroIntegratedRVangVelZ(void);
+
+uint8_t BNO08x_getTapDetector(void);
+uint64_t BNO08x_getTimeStamp(void);
+uint16_t BNO08x_getStepCount(void);
+uint8_t BNO08x_getStabilityClassifier(void);
+uint8_t BNO08x_getActivityClassifier(void);
+uint8_t BNO08x_getActivityConfidence(uint8_t activity);
 
 #endif // INC_BNO08X_H

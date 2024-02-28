@@ -10,6 +10,7 @@ set(BNO08X_LIB_SOURCE_FILES
     ${BNO08X_LIB_SOURCE_DIR}/sh2_util.c
     ${BNO08X_LIB_SOURCE_DIR}/sh2.c
     ${BNO08X_LIB_SOURCE_DIR}/shtp.c
+    ${BNO08X_LIB_SOURCE_DIR}/bno08x.c
     )
 
 add_library(${PROJECT_NAME} INTERFACE )

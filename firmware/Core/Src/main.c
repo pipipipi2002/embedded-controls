@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <printf.h>
+#include "bno08x.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,7 +49,7 @@ SPI_HandleTypeDef hspi4;
 UART_HandleTypeDef huart5;
 
 /* USER CODE BEGIN PV */
-
+float roll, pitch, yaw;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -60,7 +61,7 @@ static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_SPI4_Init(void);
 /* USER CODE BEGIN PFP */
-
+bool setBNreports(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -104,6 +105,28 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   printf("UART Retarget working.\r\n");
+  HAL_GPIO_WritePin(BN_NRST_GPIO_Port, BN_NRST_Pin, GPIO_PIN_RESET);
+  
+  
+  /* Start BNO08X sensor */
+  bool bn_init_status = BNO08x_init(&hspi2, BN_INT_GPIO_Port, BN_INT_Pin, BN_NRST_GPIO_Port, BN_NRST_Pin, BN_CS_GPIO_Port, BN_CS_Pin, BN_PS0_WAKE_GPIO_Port, BN_PS0_WAKE_Pin);
+  if (bn_init_status == false) 
+  {
+    printf("Fails to init BNO085\r\n");
+    Error_Handler();
+  }
+  printf("BNO085 Initialised\r\n");
+
+  if (setBNreports() == false)
+  {
+    Error_Handler();
+  }
+
+  printf("Ready to read data");
+  HAL_Delay(1000);
+  HAL_GPIO_WritePin(GP_LED_GPIO_Port, GP_LED_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(BN_NRST_GPIO_Port, BN_NRST_Pin, GPIO_PIN_RESET);
+  
 
   /* Turns on power to the sensor board */
   HAL_GPIO_WritePin(EN_3V3_GPIO_Port, EN_3V3_Pin, GPIO_PIN_SET);
@@ -116,8 +139,44 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    HAL_GPIO_TogglePin(GP_LED_GPIO_Port, GP_LED_Pin);
-    HAL_Delay(1000);
+
+    // uint8_t data[3] = {0xAA, 0xBB, 0xCC};
+
+
+    // HAL_GPIO_WritePin(BN_CS_GPIO_Port, BN_CS_Pin, GPIO_PIN_RESET);
+    // HAL_StatusTypeDef status = HAL_SPI_Transmit(&hspi2, data, 3, 100);
+    // HAL_GPIO_WritePin(BN_CS_GPIO_Port, BN_CS_Pin, GPIO_PIN_SET);
+
+    // if ( status != HAL_OK) 
+    // {
+    //   printf("sending fail\r\n");
+    // }
+    // else {
+    //   printf("sending ok\r\n");
+    // }
+
+    // HAL_Delay(1000);
+
+    if (BNO08x_wasReset())
+    {
+      printf("Sensor was reset!");
+      if (!setBNreports()) 
+      {
+        HAL_GPIO_WritePin(GP_LED_GPIO_Port, GP_LED_Pin, GPIO_PIN_RESET);
+        Error_Handler();
+      }
+    }
+
+    if (BNO08x_getSensorEvent())
+    {
+      if (BNO08x_getSensorEventID() == SENSOR_REPORTID_ROTATION_VECTOR)
+      {
+        BNO08x_getRollPitchYaw(&roll, &pitch, &yaw);
+        printf("%.2f,%.2f,%.2f\r\n");
+      }
+    }
+
+    HAL_Delay(10);
   }
   /* USER CODE END 3 */
 }
@@ -384,8 +443,8 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, BN_NRST_Pin|BN_PS0_WAKE_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : GP_LED_Pin BMP_CS_Pin EN_3V3_Pin */
-  GPIO_InitStruct.Pin = GP_LED_Pin|BMP_CS_Pin|EN_3V3_Pin;
+  /*Configure GPIO pins : GP_LED_Pin BMP_CS_Pin */
+  GPIO_InitStruct.Pin = GP_LED_Pin|BMP_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -422,20 +481,20 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = BN_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(BN_CS_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BN_INT_Pin */
   GPIO_InitStruct.Pin = BN_INT_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(BN_INT_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : BN_NRST_Pin BN_PS0_WAKE_Pin */
   GPIO_InitStruct.Pin = BN_NRST_Pin|BN_PS0_WAKE_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pin : SDIO_nDET_Pin */
@@ -474,11 +533,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF9_CAN1;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : EN_3V3_Pin */
+  GPIO_InitStruct.Pin = EN_3V3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(EN_3V3_GPIO_Port, &GPIO_InitStruct);
+
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 HAL_GPIO_WritePin(GPIOA, ICM40609D_CS_Pin | ICM42688P_CS_Pin, GPIO_PIN_SET);
 HAL_GPIO_WritePin(GPIOE,  BMP_CS_Pin, GPIO_PIN_SET);
 HAL_GPIO_WritePin(GPIOB,  BN_CS_Pin, GPIO_PIN_SET);
-
+HAL_GPIO_WritePin(BN_NRST_GPIO_Port, BN_NRST_Pin, GPIO_PIN_SET);
+HAL_GPIO_WritePin(BN_PS0_WAKE_GPIO_Port, BN_PS0_WAKE_Pin, GPIO_PIN_SET);
 
 /* USER CODE END MX_GPIO_Init_2 */
 }
@@ -491,7 +558,21 @@ HAL_GPIO_WritePin(GPIOB,  BN_CS_Pin, GPIO_PIN_SET);
  */
 void _putchar(char character)
 {
-  HAL_UART_Transmit(&huart5, &character, 1, 10);
+  HAL_UART_Transmit(&huart5, (const uint8_t*) &character, 1, 10);
+}
+
+bool setBNreports(void)
+{
+  if (BNO08x_enableRotationVector(10) == true)
+  {
+    printf("Rotation vector report enabled\r\n");
+    return true;
+  }
+  else
+  {
+    printf("Rotation vector report failed\r\n");
+    return false;
+  }
 }
 
 /* USER CODE END 4 */

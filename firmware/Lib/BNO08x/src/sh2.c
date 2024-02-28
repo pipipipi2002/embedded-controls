@@ -1019,7 +1019,7 @@ const sh2_Op_t getFrsOp = {
 // ------------------------------------------------------------------------
 // Support for sh2_getMetadata
 
-const static struct {
+static const struct {
     sh2_SensorId_t sensorId;
     uint16_t recordId;
 } sensorToRecordMap[] = {
@@ -1912,7 +1912,7 @@ int sh2_getMetadata(sh2_SensorId_t sensorId, sh2_SensorMetadata_t *pData)
     if (pData == 0) return SH2_ERR_BAD_PARAM;
   
     // Convert sensorId to metadata recordId
-    int i;
+    uint32_t i;
     for (i = 0; i < ARRAY_LEN(sensorToRecordMap); i++) {
         if (sensorToRecordMap[i].sensorId == sensorId) {
             break;
