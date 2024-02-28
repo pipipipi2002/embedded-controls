@@ -8,7 +8,8 @@
                 "${workspaceFolder}/Drivers/STM32F4xx_HAL_Driver/Inc",
                 "${workspaceFolder}/Drivers/CMSIS/Include",
                 "${workspaceFolder}/Drivers/CMSIS/Device/ST/STM32F4xx/Include",
-                "${workspaceFolder}/Lib/printf"
+                "${workspaceFolder}/Lib/printf",
+                "${workspaceFolder}/Lib/BNO08x/inc"
 
             ],
             "defines": [
@@ -16,7 +17,7 @@
                 "STM32F446xx"
             ],
             "compilerPath": "/Applications/ArmGNUToolchain/12.3.rel1/arm-none-eabi/bin/arm-none-eabi-gcc",
-            "cStandard": "c99",
+            "cStandard": "c11",
             "cppStandard": "c++14",
             "intelliSenseMode": "gcc-arm",
             "macFrameworkPath": [

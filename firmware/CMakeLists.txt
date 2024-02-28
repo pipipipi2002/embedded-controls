@@ -17,7 +17,7 @@ set(MCU_LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/CubeMX/STM32F446VETx_FLASH.ld)
 # ##############################################################################
 set(EXECUTABLE ${CMAKE_PROJECT_NAME})
 enable_language(C CXX ASM)
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 set(CMAKE_CXX_STANDARD 14)
@@ -35,7 +35,9 @@ add_executable(${EXECUTABLE} ${STARTUP_SCRIPT})
 target_link_libraries (${EXECUTABLE} 
     stm32f4_hal 
     embedded-controls-core
-    embedded-controls-lib)
+    embedded-controls-lib
+    embedded-controls-lib-bno08x
+    )
 
 # Embedded macros(defines)
 target_compile_definitions(${EXECUTABLE} PRIVATE
@@ -53,6 +55,7 @@ target_compile_options(${EXECUTABLE} PRIVATE
     -Wredundant-decls  
     -fno-common  
     -fdata-sections
+    -fno-math-errno
     $<$<COMPILE_LANGUAGE:C>:
         -Wimplicit-function-declaration
         -Wmissing-prototypes 

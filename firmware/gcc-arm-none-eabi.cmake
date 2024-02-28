@@ -4,8 +4,8 @@ set(CMAKE_SYSTEM_PROCESSOR arm)
 # Some default GCC settings
 set(TOOLCHAIN_PREFIX arm-none-eabi-)
 set(FLAGS
-    "-fdata-sections -ffunction-sections \
-    --specs=nano.specs -Wl,--gc-sections")
+    "-fdata-sections -ffunction-sections -fno-math-errno \
+    -Wl,--gc-sections")
 set(CPP_FLAGS
     "-fno-rtti -fno-exceptions \
     -fno-threadsafe-statics")
