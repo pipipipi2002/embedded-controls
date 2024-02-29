@@ -90,6 +90,8 @@ static void sensorCallback(void *cookie, sh2_SensorEvent_t *pEvent);
  */
 bool BNO08x_init(SPI_HandleTypeDef* spi, GPIO_TypeDef* intPort, uint16_t intPin, GPIO_TypeDef* rstPort, uint16_t rstPin, GPIO_TypeDef* csPort, uint16_t csPin, GPIO_TypeDef* wakePort, uint16_t wakePin)
 {
+    _spi = spi;
+
     _intPort = intPort;
     _intPin = intPin;
     _resetPort = rstPort;
@@ -148,10 +150,9 @@ void BNO08x_hardwareReset(void)
 {
     // Active low
     HAL_GPIO_WritePin(_resetPort, _resetPin, GPIO_PIN_RESET);
-    HAL_Delay(10);
+    HAL_Delay(100);
     HAL_GPIO_WritePin(_resetPort, _resetPin, GPIO_PIN_SET);
-    HAL_Delay(10);
-    $INFO("HW Reset triggered.");
+    // $INFO("HW Reset triggered.");
 }
 
 bool BNO08x_wasReset(void)
@@ -194,10 +195,6 @@ bool BNO08x_enableReport(sh2_SensorId_t sensorId, uint32_t interval_us, uint32_t
     config.batchInterval_us = 0;
     config.sensorSpecific = sensorSpecific;
     config.reportInterval_us = interval_us;
-
-    if (!hal_waitForInt()) {
-        return false;
-    }
     
     int status = sh2_setSensorConfig(sensorId, &config);
 
@@ -1000,9 +997,9 @@ uint64_t BNO08x_getTimeStamp(void)
  */
 static bool hal_waitForInt(void)
 {
-    for (int i = 0; i < 300; i++)
+    for (uint32_t i = 0; i < 1000; i++)
     {
-        if (!HAL_GPIO_ReadPin(_intPort, _intPin)) return true;
+        if (HAL_GPIO_ReadPin(_intPort, _intPin) == 0) return true;
         HAL_Delay(1);
     }
 
@@ -1014,6 +1011,7 @@ static bool hal_waitForInt(void)
 
 static int hal_write(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len)
 {
+    BNO08X_UNUSED(self);
     if (!hal_waitForInt())
     {
         return 0;
@@ -1034,6 +1032,8 @@ static int hal_write(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len)
 
 static int hal_read(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len, uint32_t *t_us)
 {
+    BNO08X_UNUSED(self);
+    BNO08X_UNUSED(t_us);
     uint16_t packet_size = 0;
 
     /* Read SHTP Header to detect the payload size */
@@ -1084,18 +1084,21 @@ static int hal_read(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len, uint32_t *t
 
 static void hal_close(sh2_Hal_t *self)
 {
+    BNO08X_UNUSED(self);
     return;
 }
 
 static int hal_open(sh2_Hal_t *self)
 {
-    hal_waitForInt();
+    BNO08X_UNUSED(self);
+    // hal_waitForInt();
     return 0;
 }
 
-// TODO: Implement this function for I2C
 static uint32_t hal_getTimeUs(sh2_Hal_t *self)
 {
+    BNO08X_UNUSED(self);
+    // return HAL_GetTick() * 1000;
     return 0;
 }
 
@@ -1107,6 +1110,7 @@ static uint32_t hal_getTimeUs(sh2_Hal_t *self)
  */
 static void generalCallback(void *cookie, sh2_AsyncEvent_t *pEvent)
 {
+    BNO08X_UNUSED(cookie);
     // Reset event seen
     if (pEvent->eventId == SH2_RESET)
     {
@@ -1122,9 +1126,8 @@ static void generalCallback(void *cookie, sh2_AsyncEvent_t *pEvent)
  */
 static void sensorCallback(void *cookie, sh2_SensorEvent_t *pEvent)
 {
+    BNO08X_UNUSED(cookie);
     int status;
-
-    $INFO("Got a Sensor Event!");
 
     status = sh2_decodeSensorEvent(_sensor_value, pEvent);
     if (status != SH2_OK)
