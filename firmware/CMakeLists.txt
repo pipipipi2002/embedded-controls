@@ -36,13 +36,15 @@ target_link_libraries (${EXECUTABLE}
     stm32f4_hal 
     embedded-controls-core
     embedded-controls-lib
-    embedded-controls-lib-bno08x
+    # embedded-controls-lib-bno08x-shtp
+    embedded-controls-lib-bno08x-ll
     )
 
 # Embedded macros(defines)
 target_compile_definitions(${EXECUTABLE} PRIVATE
     ${MCU_MODEL}
-    USE_HAL_DRIVER)
+    USE_HAL_DRIVER
+    USE_FULL_LL_DRIVER)
 
 # Compiler and linker options
 target_compile_options(${EXECUTABLE} PRIVATE

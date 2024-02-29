@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.12)
 
 project(embedded-controls-lib C CXX ASM )
 
-add_subdirectory(BNO08x-shtp)
+# add_subdirectory(BNO08x-shtp)
+add_subdirectory(BNO08x-ll)
 
 #### PRINTF LIBARY ####
 set(PRINTF_LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/printf )

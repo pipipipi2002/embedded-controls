@@ -152,7 +152,7 @@ void BNO08x_hardwareReset(void)
     HAL_GPIO_WritePin(_resetPort, _resetPin, GPIO_PIN_RESET);
     HAL_Delay(100);
     HAL_GPIO_WritePin(_resetPort, _resetPin, GPIO_PIN_SET);
-    // $INFO("HW Reset triggered.");
+    $INFO("HW Reset triggered.");
 }
 
 bool BNO08x_wasReset(void)

@@ -14,7 +14,8 @@
             ],
             "defines": [
                 "USE_HAL_DRIVER",
-                "STM32F446xx"
+                "STM32F446xx",
+                "USE_FULL_LL_DRIVER"
             ],
             "compilerPath": "/Applications/ArmGNUToolchain/12.3.rel1/arm-none-eabi/bin/arm-none-eabi-gcc",
             "cStandard": "c11",
