@@ -51,7 +51,6 @@ target_compile_options(${EXECUTABLE} PRIVATE
     -Wextra
     -Wshadow
     -Wpedantic
-    -Wno-unused-parameter
     -Wredundant-decls  
     -fno-common  
     -fdata-sections

@@ -67,10 +67,12 @@
 	#define $SUCCESS(fmt, ...) log_pSuccess(fmt, ##__VA_ARGS__)
 #else
 	#include <printf.h>
-	#define $INFO(fmt, ...)     printf("[BNO08X]"); printf(fmt, ##__VA_ARGS__); printf("\n\r")
-	#define $ERROR(fmt, ...)    printf("[BNO08X]"); printf(fmt, ##__VA_ARGS__); printf("\n\r")
-	#define $SUCCESS(fmt, ...)  printf("[BNO08X]"); printf(fmt, ##__VA_ARGS__); printf("\n\r")
+	#define $INFO(fmt, ...)     printf("[BNO08X] "); printf(fmt, ##__VA_ARGS__); printf("\n\r")
+	#define $ERROR(fmt, ...)    printf("[BNO08X] "); printf(fmt, ##__VA_ARGS__); printf("\n\r")
+	#define $SUCCESS(fmt, ...)  printf("[BNO08X] "); printf(fmt, ##__VA_ARGS__); printf("\n\r")
 #endif 
+
+#define BNO08X_UNUSED(x) (void)(x)
 
 //All the ways we can configure or talk to the BNO08x, figure 34, page 36 reference manual
 //These are used for low level communication with the sensor, on channel 2
