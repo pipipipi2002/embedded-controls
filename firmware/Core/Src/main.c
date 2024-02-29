@@ -22,7 +22,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <printf.h>
-#include "bno08x.h"
+// #include "bno08x.h"
+#include "BNO08X.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -110,18 +111,15 @@ int main(void)
   HAL_GPIO_WritePin(EN_3V3_GPIO_Port, EN_3V3_Pin, GPIO_PIN_SET);
 
   /* Start BNO08X sensor */
-  bool bn_init_status = BNO08x_init(&hspi2, BN_INT_GPIO_Port, BN_INT_Pin, BN_NRST_GPIO_Port, BN_NRST_Pin, BN_CS_GPIO_Port, BN_CS_Pin, BN_PS0_WAKE_GPIO_Port, BN_PS0_WAKE_Pin);
+  bool bn_init_status = BNO080_init(&hspi2, BN_INT_GPIO_Port, BN_INT_Pin, BN_NRST_GPIO_Port, BN_NRST_Pin, BN_CS_GPIO_Port, BN_CS_Pin, BN_PS0_WAKE_GPIO_Port, BN_PS0_WAKE_Pin);
   if (bn_init_status == false) 
   {
     printf("Fails to init BNO085\r\n");
     Error_Handler();
   }
-  // printf("BNO085 Initialised\r\n");
+  printf("BNO085 Initialised\r\n");
 
-  if (setBNreports() == false)
-  {
-    Error_Handler();
-  }
+  BNO080_enableRotationVector(2500);
 
   printf("Ready to read data\r\n");
 
@@ -135,27 +133,17 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-    if (BNO08x_wasReset())
+    if (BNO080_dataAvailable() == 1)
     {
-      printf("Sensor was reset!\r\n");
-      if (!setBNreports()) 
-      {
-        HAL_GPIO_WritePin(GP_LED_GPIO_Port, GP_LED_Pin, GPIO_PIN_RESET);
-        Error_Handler();
-      }
-    }
-
-    if (BNO08x_getSensorEvent())
-    {
-      if (BNO08x_getSensorEventID() == SENSOR_REPORTID_ROTATION_VECTOR)
-      {
-        BNO08x_getRollPitchYaw(&roll, &pitch, &yaw);
+      // if (BNO08x_getSensorEventID() == SENSOR_REPORTID_ROTATION_VECTOR)
+      // {
+        BNO080_getRollPitchYaw(&roll, &pitch, &yaw);
         printf("%.2f,%.2f,%.2f\r\n", roll, pitch, yaw);
-      }
+      // }
     }
     else 
     {
-      printf("no sensor event \r\n");
+      // printf("no sensor event \r\n");
     }
 
     HAL_Delay(10);
@@ -546,19 +534,19 @@ void _putchar(char character)
   HAL_UART_Transmit(&huart5, (const uint8_t*) &character, 1, 10);
 }
 
-bool setBNreports(void)
-{
-  if (BNO08x_enableRotationVector(10) == true)
-  {
-    printf("Rotation vector report enabled\r\n");
-    return true;
-  }
-  else
-  {
-    printf("Rotation vector report failed\r\n");
-    return false;
-  }
-}
+// bool setBNreports(void)
+// {
+//   if (BNO08x_enableRotationVector(10) == true)
+//   {
+//     printf("Rotation vector report enabled\r\n");
+//     return true;
+//   }
+//   else
+//   {
+//     printf("Rotation vector report failed\r\n");
+//     return false;
+//   }
+// }
 
 /* USER CODE END 4 */
 

@@ -7,9 +7,11 @@ set(CORE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Inc )
 
 set(CORE_SOURCE_FILES 
     ${CORE_SOURCE_DIR}/main.c
+    ${CORE_SOURCE_DIR}/BNO08X.c
     ${CORE_SOURCE_DIR}/stm32f4xx_hal_msp.c
     ${CORE_SOURCE_DIR}/stm32f4xx_it.c
     ${CORE_SOURCE_DIR}/system_stm32f4xx.c
+
     )
 
 add_library(${PROJECT_NAME} INTERFACE )
