@@ -36,7 +36,8 @@ target_link_libraries (${EXECUTABLE}
     stm32f4_hal 
     embedded-controls-core
     embedded-controls-lib
-    # embedded-controls-lib-bno08x
+    # embedded-controls-lib-bno08x-shtp
+    embedded-controls-lib-bno08x-ll
     )
 
 # Embedded macros(defines)

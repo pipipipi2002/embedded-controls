@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(embedded-controls-lib-bno08x C CXX ASM )
+project(embedded-controls-lib-bno08x-shtp C CXX ASM )
 
 #### BNO08X LIBARY ####
 set(BNO08X_LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src )

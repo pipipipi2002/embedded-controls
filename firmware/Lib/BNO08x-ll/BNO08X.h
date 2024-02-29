@@ -41,8 +41,16 @@
  * https://github.com/ChrisWonyeobPark/BNO080-STM32F4-SPI-LL-Driver
  */
 
-#ifndef	_BNO080_H
-#define	_BNO080_H
+/**
+ * This library has been further modified for STM32F4 with the SPI and GPIO LL.
+ * Additional features includes quarternion calculation incorporated in the lib.
+ * Initialisation is now not the responsibility of the library but the user and
+ * must be called before the init is run.
+ * @author pipipipi2002 (Marvin Pranajaya)
+ */
+
+#ifndef	INC_BNO08X_LL_H
+#define	INC_BNO08X_LL_H
 
 #include "main.h"
 #include <stdbool.h>
@@ -143,79 +151,79 @@ enum Registers
 #define MAX_PACKET_SIZE 128 //Packets can be up to 32k but we don't have that much RAM.
 #define MAX_METADATA_SIZE 9 //This is in words. There can be many but we mostly only care about the first 9 (Qs, range, etc)
 
-bool BNO080_init(SPI_TypeDef* spi, GPIO_TypeDef* intPort, uint16_t intPin, GPIO_TypeDef* rstPort, uint16_t rstPin, GPIO_TypeDef* csPort, uint16_t csPin, GPIO_TypeDef* wakePort, uint16_t wakePin);
+bool BNO08X_init(SPI_TypeDef* spi, GPIO_TypeDef* intPort, uint16_t intPin, GPIO_TypeDef* rstPort, uint16_t rstPin, GPIO_TypeDef* csPort, uint16_t csPin, GPIO_TypeDef* wakePort, uint16_t wakePin);
 unsigned char SPI2_SendByte(unsigned char data);
 
-int BNO080_dataAvailable(void);
-void BNO080_parseCommandReport(void);
-void BNO080_parseInputReport(void);
+int BNO08X_dataAvailable(void);
+void BNO08X_parseCommandReport(void);
+void BNO08X_parseInputReport(void);
 
-void BNO080_getRollPitchYaw(float* roll, float* pitch, float* yaw);
-float BNO080_getQuatI();
-float BNO080_getQuatJ();
-float BNO080_getQuatK();
-float BNO080_getQuatReal();
-float BNO080_getQuatRadianAccuracy();
-uint8_t BNO080_getQuatAccuracy();
-float BNO080_getAccelX();
-float BNO080_getAccelY();
-float BNO080_getAccelZ();
-uint8_t BNO080_getAccelAccuracy();
-float BNO080_getLinAccelX();
-float BNO080_getLinAccelY();
-float BNO080_getLinAccelZ();
-uint8_t BNO080_getLinAccelAccuracy();
-float BNO080_getGyroX();
-float BNO080_getGyroY();
-float BNO080_getGyroZ();
-uint8_t BNO080_getGyroAccuracy();
-float BNO080_getMagX();
-float BNO080_getMagY();
-float BNO080_getMagZ();
-uint8_t BNO080_getMagAccuracy();
-uint16_t BNO080_getStepCount();
-uint8_t BNO080_getStabilityClassifier();
-uint8_t BNO080_getActivityClassifier();
-uint32_t BNO080_getTimeStamp();
-int16_t BNO080_getQ1(uint16_t recordID);
-int16_t BNO080_getQ2(uint16_t recordID);
-int16_t BNO080_getQ3(uint16_t recordID);
-float BNO080_getResolution(uint16_t recordID);
-float BNO080_getRange(uint16_t recordID);
+void BNO08X_getRollPitchYaw(float* roll, float* pitch, float* yaw);
+float BNO08X_getQuatI(void);
+float BNO08X_getQuatJ(void);
+float BNO08X_getQuatK(void);
+float BNO08X_getQuatReal(void);
+float BNO08X_getQuatRadianAccuracy(void);
+uint8_t BNO08X_getQuatAccuracy(void);
+float BNO08X_getAccelX(void);
+float BNO08X_getAccelY(void);
+float BNO08X_getAccelZ(void);
+uint8_t BNO08X_getAccelAccuracy(void);
+float BNO08X_getLinAccelX(void);
+float BNO08X_getLinAccelY(void);
+float BNO08X_getLinAccelZ(void);
+uint8_t BNO08X_getLinAccelAccuracy(void);
+float BNO08X_getGyroX(void);
+float BNO08X_getGyroY(void);
+float BNO08X_getGyroZ(void);
+uint8_t BNO08X_getGyroAccuracy(void);
+float BNO08X_getMagX(void);
+float BNO08X_getMagY(void);
+float BNO08X_getMagZ(void);
+uint8_t BNO08X_getMagAccuracy(void);
+uint16_t BNO08X_getStepCount(void);
+uint8_t BNO08X_getStabilityClassifier(void);
+uint8_t BNO08X_getActivityClassifier(void);
+uint32_t BNO08X_getTimeStamp(void);
+int16_t BNO08X_getQ1(uint16_t recordID);
+int16_t BNO08X_getQ2(uint16_t recordID);
+int16_t BNO08X_getQ3(uint16_t recordID);
+float BNO08X_getResolution(uint16_t recordID);
+float BNO08X_getRange(uint16_t recordID);
 
-uint32_t BNO080_readFRSword(uint16_t recordID, uint8_t wordNumber);
-void BNO080_frsReadRequest(uint16_t recordID, uint16_t readOffset, uint16_t blockSize);
-int BNO080_readFRSdata(uint16_t recordID, uint8_t startLocation, uint8_t wordsToRead);
-void BNO080_softReset(void);
-uint8_t BNO080_resetReason();
+uint32_t BNO08X_readFRSword(uint16_t recordID, uint8_t wordNumber);
+void BNO08X_frsReadRequest(uint16_t recordID, uint16_t readOffset, uint16_t blockSize);
+int BNO08X_readFRSdata(uint16_t recordID, uint8_t startLocation, uint8_t wordsToRead);
+void BNO08X_softReset(void);
+uint8_t BNO08X_resetReason(void);
 
-float BNO080_qToFloat(int16_t fixedPointValue, uint8_t qPoint);
+float BNO08X_qToFloat(int16_t fixedPointValue, uint8_t qPoint);
 
-void BNO080_enableRotationVector(uint16_t timeBetweenReports);
-void BNO080_enableGameRotationVector(uint16_t timeBetweenReports);
-void BNO080_enableAccelerometer(uint16_t timeBetweenReports);
-void BNO080_enableLinearAccelerometer(uint16_t timeBetweenReports);
-void BNO080_enableGyro(uint16_t timeBetweenReports);
-void BNO080_enableMagnetometer(uint16_t timeBetweenReports);
-void BNO080_enableStepCounter(uint16_t timeBetweenReports);
-void BNO080_enableStabilityClassifier(uint16_t timeBetweenReports);
+void BNO08X_enableRotationVector(uint16_t timeBetweenReports);
+void BNO08X_enableGameRotationVector(uint16_t timeBetweenReports);
+void BNO08X_enableAccelerometer(uint16_t timeBetweenReports);
+void BNO08X_enableLinearAccelerometer(uint16_t timeBetweenReports);
+void BNO08X_enableGyro(uint16_t timeBetweenReports);
+void BNO08X_enableMagnetometer(uint16_t timeBetweenReports);
+void BNO08X_enableStepCounter(uint16_t timeBetweenReports);
+void BNO08X_enableStabilityClassifier(uint16_t timeBetweenReports);
 
-void BNO080_calibrateAccelerometer();
-void BNO080_calibrateGyro();
-void BNO080_calibrateMagnetometer();
-void BNO080_calibratePlanarAccelerometer();
-void BNO080_calibrateAll();
-void BNO080_endCalibration();
-int BNO080_calibrationComplete();
+void BNO08X_calibrateAccelerometer(void);
+void BNO08X_calibrateGyro(void);
+void BNO08X_calibrateMagnetometer(void);
+void BNO08X_calibratePlanarAccelerometer(void);
+void BNO08X_calibrateAll(void);
+void BNO08X_endCalibration(void);
+int BNO08X_calibrationComplete(void);
 
-void BNO080_setFeatureCommand(uint8_t reportID, uint32_t microsBetweenReports, uint32_t specificConfig);
-void BNO080_sendCommand(uint8_t command);
-void BNO080_sendCalibrateCommand(uint8_t thingToCalibrate);
-void BNO080_requestCalibrationStatus();
-void BNO080_saveCalibration();
+void BNO08X_setFeatureCommand(uint8_t reportID, uint32_t microsBetweenReports, uint32_t specificConfig);
+void BNO08X_sendCommand(uint8_t command);
+void BNO08X_sendCalibrateCommand(uint8_t thingToCalibrate);
+void BNO08X_requestCalibrationStatus(void);
+void BNO08X_saveCalibration(void);
 
-int BNO080_waitForSPI(void);
-int BNO080_receivePacket(void);
-int BNO080_sendPacket(uint8_t channelNumber, uint8_t dataLength);
+int BNO08X_waitForSPI(void);
+int BNO08X_receivePacket(void);
+int BNO08X_sendPacket(uint8_t channelNumber, uint8_t dataLength);
 
-#endif
+#endif // INC_BNO08X_LL_H

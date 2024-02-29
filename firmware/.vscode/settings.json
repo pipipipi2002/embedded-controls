@@ -4,7 +4,8 @@
         "stm32f4xx_hal.h": "c",
         "stm32f4xx_hal_conf.h": "c",
         "cmath": "c",
-        "bno08x.h": "c"
+        "bno08x.h": "c",
+        "stdbool.h": "c"
     },
     "cortex-debug.variableUseNaturalFormat": false,
     "cortex-debug.armToolchainPath": "/Applications/ArmGNUToolchain/12.3.rel1/arm-none-eabi/bin/"
