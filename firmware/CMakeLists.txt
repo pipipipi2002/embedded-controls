@@ -42,7 +42,8 @@ target_link_libraries (${EXECUTABLE}
 # Embedded macros(defines)
 target_compile_definitions(${EXECUTABLE} PRIVATE
     ${MCU_MODEL}
-    USE_HAL_DRIVER)
+    USE_HAL_DRIVER
+    USE_FULL_LL_DRIVER)
 
 # Compiler and linker options
 target_compile_options(${EXECUTABLE} PRIVATE

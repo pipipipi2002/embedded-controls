@@ -143,7 +143,7 @@ enum Registers
 #define MAX_PACKET_SIZE 128 //Packets can be up to 32k but we don't have that much RAM.
 #define MAX_METADATA_SIZE 9 //This is in words. There can be many but we mostly only care about the first 9 (Qs, range, etc)
 
-bool BNO080_init(SPI_HandleTypeDef* spi, GPIO_TypeDef* intPort, uint16_t intPin, GPIO_TypeDef* rstPort, uint16_t rstPin, GPIO_TypeDef* csPort, uint16_t csPin, GPIO_TypeDef* wakePort, uint16_t wakePin);
+bool BNO080_init(SPI_TypeDef* spi, GPIO_TypeDef* intPort, uint16_t intPin, GPIO_TypeDef* rstPort, uint16_t rstPin, GPIO_TypeDef* csPort, uint16_t csPin, GPIO_TypeDef* wakePort, uint16_t wakePin);
 unsigned char SPI2_SendByte(unsigned char data);
 
 int BNO080_dataAvailable(void);

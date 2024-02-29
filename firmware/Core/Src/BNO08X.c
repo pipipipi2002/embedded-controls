@@ -75,9 +75,9 @@ int16_t magnetometer_Q1 = 4;
 
 static GPIO_TypeDef *_intPort, *_resetPort, *_csPort, *_wakePort;
 static uint16_t _intPin, _resetPin, _csPin, _wakePin;
-static SPI_HandleTypeDef* _spi = NULL;
+static SPI_TypeDef* _spi = NULL;
 
-bool BNO080_init(SPI_HandleTypeDef* spi, GPIO_TypeDef* intPort, uint16_t intPin, GPIO_TypeDef* rstPort, uint16_t rstPin, GPIO_TypeDef* csPort, uint16_t csPin, GPIO_TypeDef* wakePort, uint16_t wakePin)
+bool BNO080_init(SPI_TypeDef* spi, GPIO_TypeDef* intPort, uint16_t intPin, GPIO_TypeDef* rstPort, uint16_t rstPin, GPIO_TypeDef* csPort, uint16_t csPin, GPIO_TypeDef* wakePort, uint16_t wakePin)
 {
     _spi = spi;
 
@@ -94,11 +94,15 @@ bool BNO080_init(SPI_HandleTypeDef* spi, GPIO_TypeDef* intPort, uint16_t intPin,
 
     $INFO("Start Initialisation.");
 
-    HAL_GPIO_WritePin(_csPort, _csPin, GPIO_PIN_SET); // Deselect CS
-    HAL_GPIO_WritePin(_wakePort, _wakePin, GPIO_PIN_SET); // PS0 set to high for SPI comms
-    HAL_GPIO_WritePin(_resetPort, _resetPin, GPIO_PIN_RESET); // reset active low
+    // HAL_GPIO_WritePin(_csPort, _csPin, GPIO_PIN_SET); // Deselect CS
+    LL_GPIO_SetOutputPin(_csPort, _csPin);
+    // HAL_GPIO_WritePin(_wakePort, _wakePin, GPIO_PIN_SET); // PS0 set to high for SPI comms
+    LL_GPIO_SetOutputPin(_wakePort, _wakePin);
+    // HAL_GPIO_WritePin(_resetPort, _resetPin, GPIO_PIN_RESET); // reset active low
+    LL_GPIO_ResetOutputPin(_resetPort, _resetPin);
     HAL_Delay(200);
-    HAL_GPIO_WritePin(_resetPort, _resetPin, GPIO_PIN_SET); // reset active low
+    // HAL_GPIO_WritePin(_resetPort, _resetPin, GPIO_PIN_SET); // reset active low
+    LL_GPIO_SetOutputPin(_resetPort, _resetPin);
 
     /* Wait for advertisement message */
     BNO080_waitForSPI();
@@ -133,14 +137,11 @@ bool BNO080_init(SPI_HandleTypeDef* spi, GPIO_TypeDef* intPort, uint16_t intPin,
 
 unsigned char SPI2_SendByte(unsigned char data)
 {
-    unsigned char ret = 0xFF;
-    if (HAL_SPI_TransmitReceive(_spi, (uint8_t *)&data, (uint8_t *)&ret, 1, 100) != HAL_OK)
-    {
-        $ERROR("SPI txrx error");
-        return 0;
-    }
-
-    return ret;
+    while(LL_SPI_IsActiveFlag_TXE(_spi)==RESET);
+	LL_SPI_TransmitData8(_spi, data);
+	
+	while(LL_SPI_IsActiveFlag_RXNE(_spi)==RESET);
+	return LL_SPI_ReceiveData8(_spi);
 }
 
 
@@ -954,7 +955,7 @@ int BNO080_waitForSPI(void)
 {
 	for (uint32_t counter = 0; counter < 0xffffffff; counter++) //Don't got more than 255
 	{
-        if (HAL_GPIO_ReadPin(_intPort, _intPin) == 0)
+        if (LL_GPIO_IsInputPinSet(_intPort, _intPin) == 0)
 		{
 			//printf("\nData available\n");
 			return (1);
@@ -972,14 +973,14 @@ int BNO080_receivePacket(void)
 {
 	uint8_t incoming;
 
-    if (HAL_GPIO_ReadPin(_intPort, _intPin) == 1)
+    if (LL_GPIO_IsInputPinSet(_intPort, _intPin) == 1)
 		return (0); //Data is not available
 
 	//Old way: if (BNO080_waitForSPI() == 0) return (0); //Something went wrong
 
 	//Get first four bytes to find out how much data we need to read
 
-    HAL_GPIO_WritePin(_csPort, _csPin, GPIO_PIN_RESET);
+    LL_GPIO_ResetOutputPin(_csPort, _csPin);
 
 	//Get the first four bytes, aka the packet header
 	uint8_t packetLSB = SPI2_SendByte(0);
@@ -1017,7 +1018,7 @@ int BNO080_receivePacket(void)
 	}
 	//printf("\n");
 
-    HAL_GPIO_WritePin(_csPort, _csPin, GPIO_PIN_SET);
+    LL_GPIO_SetOutputPin(_csPort, _csPin);
 	return (1); //We're done!
 }
 
@@ -1035,7 +1036,7 @@ int BNO080_sendPacket(uint8_t channelNumber, uint8_t dataLength)
 
 	//BNO080 has max CLK of 3MHz, MSB first,
 	//The BNO080 uses CPOL = 1 and CPHA = 1. This is mode3
-    HAL_GPIO_WritePin(_csPort, _csPin, GPIO_PIN_RESET);
+    LL_GPIO_ResetOutputPin(_csPort, _csPin);
 
 	//Send the 4 byte packet header
 	SPI2_SendByte(packetLength & 0xFF);			//Packet length LSB
@@ -1049,7 +1050,7 @@ int BNO080_sendPacket(uint8_t channelNumber, uint8_t dataLength)
 		SPI2_SendByte(shtpData[i]);
 	}
 
-    HAL_GPIO_WritePin(_csPort, _csPin, GPIO_PIN_SET);
+    LL_GPIO_SetOutputPin(_csPort, _csPin);
 
 	return (1);
 }
