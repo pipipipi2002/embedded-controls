@@ -9,5 +9,6 @@
         "icm42688p_regs.h": "c"
     },
     "cortex-debug.variableUseNaturalFormat": false,
-    "cortex-debug.armToolchainPath": "/Applications/ArmGNUToolchain/12.3.rel1/arm-none-eabi/bin/"
+    "cortex-debug.armToolchainPath": "/Applications/ArmGNUToolchain/12.3.rel1/arm-none-eabi/bin/",
+    "C_Cpp.default.compilerPath": "/Applications/ArmGNUToolchain/12.3.rel1/arm-none-eabi/bin/arm-none-eabi-gcc"
 }
