@@ -38,6 +38,7 @@ target_link_libraries (${EXECUTABLE}
     embedded-controls-lib
     # embedded-controls-lib-bno08x-shtp
     embedded-controls-lib-bno08x-ll
+    embedded-controls-lib-icm42688p
     )
 
 # Embedded macros(defines)

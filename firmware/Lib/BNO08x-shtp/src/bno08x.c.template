@@ -50,3 +50,17 @@ int main(void)
         HAL_Delay(10);
     }
 }
+
+ bool setBNreports(void)
+ {
+    if (BNO08x_enableRotationVector(10) == true)
+    {
+        printf("Rotation vector report enabled\r\n");
+        return true;
+    }
+    else
+    {
+        printf("Rotation vector report failed\r\n");
+        return false;
+    }
+}

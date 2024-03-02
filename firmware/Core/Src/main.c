@@ -58,7 +58,6 @@ static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_SPI4_Init(void);
 /* USER CODE BEGIN PFP */
-bool setBNreports(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -102,23 +101,9 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   printf("UART Retarget working.\r\n");  
-
+  
   /* Turns on power to the sensor board */
-  // HAL_GPIO_WritePin(EN_3V3_GPIO_Port, EN_3V3_Pin, GPIO_PIN_SET);
   LL_GPIO_SetOutputPin(EN_3V3_GPIO_Port, EN_3V3_Pin);
-
-  /* Start BNO08X sensor */
-  bool bn_init_status = BNO08X_init(SPI2, BN_INT_GPIO_Port, BN_INT_Pin, BN_NRST_GPIO_Port, BN_NRST_Pin, BN_CS_GPIO_Port, BN_CS_Pin, BN_PS0_WAKE_GPIO_Port, BN_PS0_WAKE_Pin);
-  if (bn_init_status == false) 
-  {
-    printf("Fails to init BNO085\r\n");
-    Error_Handler();
-  }
-  printf("BNO085 Initialised\r\n");
-
-  BNO08X_enableRotationVector(2500);
-
-  printf("Ready to read data\r\n");
 
   /* USER CODE END 2 */
 
@@ -129,12 +114,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
-    if (BNO08X_dataAvailable() == 1)
-    {
-        BNO08X_getRollPitchYaw(&roll, &pitch, &yaw);
-        printf("%.2f,%.2f,%.2f\r\n", roll, pitch, yaw);
-    }
     HAL_Delay(10);
   }
   /* USER CODE END 3 */
@@ -609,20 +588,6 @@ void _putchar(char character)
 {
   HAL_UART_Transmit(&huart5, (const uint8_t*) &character, 1, 10);
 }
-
-// bool setBNreports(void)
-// {
-//   if (BNO08x_enableRotationVector(10) == true)
-//   {
-//     printf("Rotation vector report enabled\r\n");
-//     return true;
-//   }
-//   else
-//   {
-//     printf("Rotation vector report failed\r\n");
-//     return false;
-//   }
-// }
 
 /* USER CODE END 4 */
 

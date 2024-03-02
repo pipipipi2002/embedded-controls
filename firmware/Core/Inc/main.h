@@ -99,6 +99,10 @@ void Error_Handler(void);
 #define EN_3V3_GPIO_Port GPIOE
 
 /* USER CODE BEGIN Private defines */
+#define ENABLE_3V3_SENSOR_BOARD     LL_GPIO_SetOutputPin(EN_3V3_GPIO_Port, EN_3V3_Pin)
+#define DISABLE_3V3_SENSOR_BOARD    LL_GPIO_ResetOutputPin(EN_3V3_GPIO_Port, EN_3V3_Pin)
+#define CS_SELECT(x)                LL_GPIO_ResetOutputPin(x##_CS_GPIO_Port, x##_CS_Pin)
+#define CS_DESELECT(x)              LL_GPIO_SetOutputPin(x##_CS_GPIO_Port, x##_CS_Pin)
 
 /* USER CODE END Private defines */
 
