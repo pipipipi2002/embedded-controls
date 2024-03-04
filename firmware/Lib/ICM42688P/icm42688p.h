@@ -104,7 +104,7 @@ typedef enum {
 ICM_Status_t ICM42688P_init(SPI_TypeDef* spi, GPIO_TypeDef* csPort, uint16_t csPin, GPIO_TypeDef* int1Port, uint16_t int1Pin, GPIO_TypeDef* int2Port, uint16_t int2Pin);
 ICM_Status_t ICM42688P_reset(void);
 uint8_t ICM42688P_whoami(void);
-ICM_Status_t ICM42688P_enAll(bool en);
+ICM_Status_t ICM42688P_enAll(void);
 ICM_Status_t ICM42688P_enIdle(bool en);
 ICM_Status_t ICM42688P_enTemp(bool en);
 ICM_Status_t ICM42688P_enGyro(ICM42688P_GYRO_PWR_t mode);

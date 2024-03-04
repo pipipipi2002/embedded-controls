@@ -105,6 +105,7 @@ int main(void)
   LL_GPIO_SetOutputPin(EN_3V3_GPIO_Port, EN_3V3_Pin);
 
   uint8_t ret = ICM42688P_init(SPI3, ICM42688P_CS_GPIO_Port, ICM42688P_CS_Pin, ICM42688P_INT1_GPIO_Port, ICM42688P_INT2_Pin, ICM42688P_INT2_GPIO_Port, ICM42688P_INT2_Pin);
+  // uint8_t ret = ICM42688P_init(SPI1, ICM40609D_CS_GPIO_Port, ICM40609D_CS_Pin, ICM40609D_INT1_GPIO_Port, ICM40609D_INT1_Pin, ICM40609D_INT2_GPIO_Port, ICM40609D_INT2_Pin);
   if (ret != ICM_OK) {
     printf("ICM init failed\r\n");
     Error_Handler();
@@ -114,7 +115,8 @@ int main(void)
     printf("ICM init completed\r\n");
   }
 
-  // ICM42688P_calibGyro();
+  ICM42688P_calibGyro();
+  ICM42688P_calibAccel();
   printf("Gyro Bias X Y Z: %0.2f %0.2f %0.2f\r\n", ICM42688P_getGyroBiasX(), ICM42688P_getGyroBiasY(), ICM42688P_getGyroBiasZ());
 
   /* USER CODE END 2 */
@@ -127,6 +129,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
     ICM42688P_updateAllData();
+
     printf("Temp: %.02f ", ICM42688_getTemp());
     printf("accelX: %.02f ", ICM42688_getAccX());
     printf("accelY: %.02f ", ICM42688_getAccY());
@@ -236,7 +239,7 @@ static void MX_SPI1_Init(void)
   LL_SPI_Init(SPI1, &SPI_InitStruct);
   LL_SPI_SetStandard(SPI1, LL_SPI_PROTOCOL_MOTOROLA);
   /* USER CODE BEGIN SPI1_Init 2 */
-
+  LL_SPI_Enable(SPI1);
   /* USER CODE END SPI1_Init 2 */
 
 }

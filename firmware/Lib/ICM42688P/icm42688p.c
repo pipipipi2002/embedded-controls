@@ -21,7 +21,7 @@ float _gyroBiasData[3] = {0};
 
 float _accBias[3] = {0};
 float _accBiasData[3] = {0};
-float _accScale[3] = {0.1f, 0.1f, 0.1f};
+float _accScale[3] = {1.0f, 1.0f, 1.0f};
 float _accMax[3] = {0};
 float _accMin[3] = {0};
 
@@ -87,10 +87,12 @@ ICM_Status_t ICM42688P_init(SPI_TypeDef* spi, GPIO_TypeDef* csPort, uint16_t csP
         return ICM_ERROR;
     }
 
+    self_test();
+
     // ICM42688P_setFilters(true, true);
 
     // Enable Temp, Accel (LN), and Gyro (LN)
-    if (ICM42688P_enAll(true) != ICM_OK)
+    if (ICM42688P_enAll() != ICM_OK)
     {
         $ERROR("Unable to init, failed at enabling sensors.");
         return ICM_ERROR;
@@ -125,9 +127,9 @@ uint8_t ICM42688P_whoami(void)
     return _buffer[0];
 }
 
-ICM_Status_t ICM42688P_enAll(bool en)
+ICM_Status_t ICM42688P_enAll(void)
 {
-    if (ICM42688P_enTemp(en) != ICM_OK)
+    if (ICM42688P_enTemp(true) != ICM_OK)
     {
         return ICM_ERROR;
     }
@@ -147,6 +149,7 @@ ICM_Status_t ICM42688P_enAll(bool en)
 
 ICM_Status_t ICM42688P_enTemp(bool en)
 {
+    setBank(0);
     uint8_t reg;
 
     if (readRegs(PWR_MGMT0, 1, &reg) != ICM_OK)
@@ -175,6 +178,7 @@ ICM_Status_t ICM42688P_enTemp(bool en)
 
 ICM_Status_t ICM42688P_enIdle(bool en)
 {
+    setBank(0);
     uint8_t reg;
 
     if (readRegs(PWR_MGMT0, 1, &reg) != ICM_OK)
@@ -204,6 +208,8 @@ ICM_Status_t ICM42688P_enIdle(bool en)
 
 ICM_Status_t ICM42688P_enGyro(ICM42688P_GYRO_PWR_t mode)
 {
+    setBank(0);
+
     uint8_t reg;
 
     if (readRegs(PWR_MGMT0, 1, &reg) != ICM_OK)
@@ -244,6 +250,7 @@ ICM_Status_t ICM42688P_enGyro(ICM42688P_GYRO_PWR_t mode)
 
 ICM_Status_t ICM42688P_enAccel(ICM42688P_ACCEL_PWR_t mode)
 {
+    setBank(0);
     uint8_t reg;
 
     if (readRegs(PWR_MGMT0, 1, &reg) != ICM_OK)
