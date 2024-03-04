@@ -107,6 +107,7 @@ int main(void)
   uint8_t ret = ICM42688P_init(SPI3, ICM42688P_CS_GPIO_Port, ICM42688P_CS_Pin, ICM42688P_INT1_GPIO_Port, ICM42688P_INT2_Pin, ICM42688P_INT2_GPIO_Port, ICM42688P_INT2_Pin);
   if (ret != ICM_OK) {
     printf("ICM init failed\r\n");
+    Error_Handler();
   }
   else 
   {
