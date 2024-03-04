@@ -31,6 +31,16 @@ typedef enum {
     ICM_ERROR
 } ICM_Status_t;
 
+typedef struct ICM_DataPacket_t{
+	float temp;
+	float accX;
+	float accY;
+	float accZ;
+	float gyroX;
+	float gyroY;
+	float gyroZ;
+} ICM_DataPacket_t;
+
 typedef enum {
 	GYRO_DPS_2000 	= 0,
 	GYRO_DPS_1000 	= 1,
@@ -67,9 +77,22 @@ typedef enum {
 	ODR_500		= 15		
 } ICM42688P_ODR_t;
 
+typedef enum {
+	GYRO_OFF = 0,
+	GYRO_STANDBY = 1,
+	GYRO_LN = 3
+} ICM42688P_GYRO_PWR_t;
+
+typedef enum {
+	ACCEL_OFF = 0,
+	ACCEL_LP = 2,
+	ACCEL_LN = 3
+} ICM42688P_ACCEL_PWR_t;
+
 ICM_Status_t ICM42688P_init(SPI_TypeDef* spi, GPIO_TypeDef* csPort, uint16_t csPin, GPIO_TypeDef* int1Port, uint16_t int1Pin, GPIO_TypeDef* int2Port, uint16_t int2Pin);
 ICM_Status_t ICM42688P_reset(void);
-ICM_Status_t ICM42688P_whoami(void);
+uint8_t ICM42688P_whoami(void);
+ICM_Status_t ICM42688P_enableSensors(bool enTemp, bool enIdle, ICM42688P_GYRO_PWR_t gyroPwr, ICM42688P_ACCEL_PWR_t accelPwr);
 
 ICM_Status_t ICM42688P_setGyroFSR(ICM42688P_GYRO_FRS_t gyroFsr);
 ICM_Status_t ICM42688P_setAccelFSR(ICM42688P_ACCEL_FRS_t accelFsr);
@@ -78,7 +101,16 @@ ICM_Status_t ICM42688P_setAccelODR(ICM42688P_ODR_t accelOdr);
 ICM_Status_t ICM42688P_setFilters(bool gyroFils, bool accelFils);
 ICM_Status_t ICM42688P_enableDataRdyInt(void);
 ICM_Status_t ICM42688P_disableDataRdyInt(void);
-ICM_Status_t ICM42688P_readData(void);
+
+ICM_Status_t ICM42688P_getAccelGyroTempData(void);
+float ICM42688_convertRawToTemp(uint16_t raw);
+float ICM42688_getTemp(void);
+float ICM42688_getAccX(void);
+float ICM42688_getAccY(void);
+float ICM42688_getAccZ(void);
+float ICM42688_getGyroX(void);
+float ICM42688_getGyroY(void);
+float ICM42688_getGyroZ(void);
 
 ICM_Status_t ICM42688P_enableFifo(bool accel, bool gyro, bool temp);
 ICM_Status_t ICM42688P_readFifo(void);

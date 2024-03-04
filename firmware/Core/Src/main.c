@@ -22,8 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <printf.h>
-// #include "bno08x.h"
-#include "BNO08X.h"
+#include "icm42688p.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -105,6 +104,16 @@ int main(void)
   /* Turns on power to the sensor board */
   LL_GPIO_SetOutputPin(EN_3V3_GPIO_Port, EN_3V3_Pin);
 
+  uint8_t ret = ICM42688P_init(SPI3, ICM42688P_CS_GPIO_Port, ICM42688P_CS_Pin, ICM42688P_INT1_GPIO_Port, ICM42688P_INT2_Pin, ICM42688P_INT2_GPIO_Port, ICM42688P_INT2_Pin);
+  if (ret != ICM_OK) {
+    printf("icm init failed\r\n");
+  }
+  else 
+  {
+    printf("ICM init completed\r\n");
+  }
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -114,7 +123,16 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    HAL_Delay(10);
+    ICM42688P_getAccelGyroTempData();
+    printf("Temp: %.02f", ICM42688_getTemp());
+    printf(" accelX: %.02f", ICM42688_getAccX());
+    printf(" accelY: %.02f", ICM42688_getAccY());
+    printf(" accelZ: %.02f\r\n", ICM42688_getAccZ());
+    // printf(" GyroX: %.02f", ICM42688_getGyroX());
+    // printf(" GyroY: %.02f", ICM42688_getGyroY());
+    // printf(" GyroZ: %.02f\r\n", ICM42688_getGyroZ());
+    
+    HAL_Delay(250);
   }
   /* USER CODE END 3 */
 }
@@ -334,7 +352,7 @@ static void MX_SPI3_Init(void)
   LL_SPI_Init(SPI3, &SPI_InitStruct);
   LL_SPI_SetStandard(SPI3, LL_SPI_PROTOCOL_MOTOROLA);
   /* USER CODE BEGIN SPI3_Init 2 */
-
+  LL_SPI_Enable(SPI3);
   /* USER CODE END SPI3_Init 2 */
 
 }

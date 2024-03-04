@@ -12,6 +12,12 @@
 #ifndef INC_ICM42688P_REGS_H
 #define INC_ICM42688P_REGS_H
 
+#define ICM42688P_WHOAMI_BYTE   (0x47)
+#define ICM40609D_WHOAMI_BYTE   (0x3B)
+
+#define ICM42688P_TEMP_DATA_REG_SCALE   (132.48f)
+#define ICM42688P_TEMP_OFFSET           (25.0f)
+
 /* ===========================================
  * BANK0, 1, 2, 3, 4 ADDRESSES
  * =========================================== */
@@ -143,10 +149,19 @@
 /* ===========================================
  * Register BANK0
  * =========================================== */
-
+/**
+ * SPI_MODE
+ *  0: Mode 0 and Mode 3 (default)
+ *  1: Mode 1 and Mode 2
+*/
 #define DEVICE_CONFIG_SPI_MODE_POS              (0x4)
 #define DEVICE_CONFIG_SPI_MODE_MASK             (0x1 << DEVICE_CONFIG_SPI_MODE_POS)
 
+/**
+ * SOFT_RESET_CONFIG
+ *  0: Normal (default)
+ *  1: Enable Reset
+ */
 #define DEVICE_CONFIG_SPI_SOFT_RESET_CONFIG_POS     (0x0)
 #define DEVICE_CONFIG_SPI_SOFT_RESET_CONFIG_MASK    (0x1)
 
@@ -351,29 +366,62 @@
 #define INTF_CONFIG1_CLKSEL_POS                 (0x0)
 #define INTF_CONFIG1_CLKSEL_MASK                (0x3)
 
+/**
+ * TEMP_DIS
+ *  0: Temp sensor enabled (default)
+ *  1: Temp sensor disabled
+ */
 #define PWR_MGMT0_TEMP_DIS_POS                  (0x5)
 #define PWR_MGMT0_TEMP_DIS_MASK                 (0x1 << PWR_MGMT0_TEMP_DIS_POS)
+    #define TEMP_ENABLE         (0x0)
+    #define TEMP_DISABLE        (0x1 << PWR_MGMT0_TEMP_DIS_POS)
 
+/**
+ * IDLE
+ *  0: Chip will be off when accel/gyro off (default)
+ *  1: Stay on even when accel/gyro off
+ */
 #define PWR_MGMT0_IDLE_POS                      (0x4)
 #define PWR_MGMT0_IDLE_MASK_MASK                (0x1 << PWR_MGMT0_IDLE_POS)
+    #define IDLE_DISABLE        (0x0)         
+    #define IDLE_ENABLE         (0x1 << PWR_MGMT0_IDLE_POS)
 
+/**
+ * GYRO_MODE
+ *  00: GYRO OFF (default)
+ *  01: GYRO Standby
+ *  11: GYRO in Low Noise
+ */
 #define PWR_MGMT0_GYRO_MODE_POS                 (0x2)
 #define PWR_MGMT0_GYRO_MODE_MASK                (0x3 << PWR_MGMT0_GYRO_MODE_POS)
+    #define GYRO_MODE_OFF       (0x0)
+    #define GYRO_MODE_STANDBY   (0x1 << PWR_MGMT0_GYRO_MODE_POS)
+    #define GYRO_MODE_LN        (0x3 << PWR_MGMT0_GYRO_MODE_POS)
 
+/**
+ * ACCEL_MODE
+ *  00: ACCEL OFF (default)
+ *  01: ACCEL OFF 
+ *  10: ACCEL in Low Power 
+ *  11: ACCEL in Low Noise
+ */
 #define PWR_MGMT0_ACCEL_MODE_POS                (0x0)
 #define PWR_MGMT0_ACCEL_MODE_MASK               (0x3)
+    #define ACCEL_MODE_OFF      (0x0)
+    #define ACCEL_MODE_LP       (0x2 << PWR_MGMT0_ACCEL_MODE_POS)
+    #define ACCEL_MODE_LN       (0x3 << PWR_MGMT0_ACCEL_MODE_POS)
 
 #define GYRO_CONFIG0_GYRO_FS_SEL_POS            (0x5)
 #define GYRO_CONFIG0_GYRO_FS_SEL_MASK           (0x7 << GYRO_CONFIG0_GYRO_FS_SEL_POS)
 
 #define GYRO_CONFIG0_GYRO_ODR_POS               (0x0)
-#define GYRO_CONFIG0_GYRO_ODR_MASK              (0x7)
+#define GYRO_CONFIG0_GYRO_ODR_MASK              (0xF)
 
 #define ACCEL_CONFIG0_ACCEL_FS_SEL_POS          (0x5)
 #define ACCEL_CONFIG0_ACCEL_FS_SEL_MASK         (0x7 << ACCEL_CONFIG0_ACCEL_FS_SEL_POS)
 
 #define ACCEL_CONFIG0_ACCEL_ODR_POS             (0x0)
-#define ACCEL_CONFIG0_ACCEL_ODR_MASK            (0x7)
+#define ACCEL_CONFIG0_ACCEL_ODR_MASK            (0xF)
 
 #define GYRO_CONFIG1_TEMP_FILT_BW_POS           (0x5)
 #define GYRO_CONFIG1_TEMP_FILT_BW_MASK          (0x7 << GYRO_CONFIG1_TEMP_FILT_BW_POS)
@@ -619,11 +667,25 @@
 #define SENSOR_CONFIG0_XA_DISABLE_POS           (0x0)
 #define SENSOR_CONFIG0_XA_DISABLE_MASK          (0x1)
 
+/**
+ * GYRO_AAF_DIS
+ *  0: Enable Gyro AAF (default)
+ *  1: Disable Gyro AAF
+ */
 #define GYRO_CONFIG_STATIC2_GYRO_AAF_DIS_POS    (0x1)
 #define GYRO_CONFIG_STATIC2_GYRO_AAF_DIS_MASK   (0x1 << GYRO_CONFIG_STATIC2_GYRO_AAF_DIS_POS)
+    #define GYRO_AAF_ENABLE     (0x0)
+    #define GYRO_AAF_DISABLE    (0x1 << GYRO_CONFIG_STATIC2_GYRO_AAF_DIS_POS)
 
-#define GYRO_CONFIG_STATIC2_GYRO_NF_DIS_POS     (0x1)
+/**
+ * GYRO_NF_DIS
+ *  0: Enable Gyro NF (default)
+ *  1: Disable Gyro NF
+ */
+#define GYRO_CONFIG_STATIC2_GYRO_NF_DIS_POS     (0x0)
 #define GYRO_CONFIG_STATIC2_GYRO_NF_DIS_MASK    (0x1)
+    #define GYRO_NF_ENABLE      (0x0)
+    #define GYRO_NF_DISABLE     (0x1)
 
 #define GYRO_CONFIG_STATIC3_GYRO_AAF_DELT_POS   (0x0)
 #define GYRO_CONFIG_STATIC3_GYRO_AAF_DELT_MASK  (0x3F)
@@ -719,8 +781,15 @@
 #define ACCEL_CONFIG_STATIC2_ACCEL_AAF_DELT_POS     (0x1)
 #define ACCEL_CONFIG_STATIC2_ACCEL_AAF_DELT_MASK    (0x3F << ACCEL_CONFIG_STATIC2_ACCEL_AAF_DELT_POS)
 
+/**
+ * ACCEL_AAF
+ *  0: Enable Accel AAF (default)
+ *  1: Disable Accel AAF
+ */
 #define ACCEL_CONFIG_STATIC2_ACCEL_AAF_DIS_POS      (0x0)
 #define ACCEL_CONFIG_STATIC2_ACCEL_AAF_DIS_MASK     (0x1)
+    #define ACCEL_AAF_ENABLE    (0x0)
+    #define ACCEL_AAF_DISABLE   (0x1)
 
 #define ACCEL_CONFIG_STATIC3_ACCEL_AAF_DELTSQR_POS  (0x0)
 #define ACCEL_CONFIG_STATIC3_ACCEL_AAF_DELTSQR_MASK (0xFF)
