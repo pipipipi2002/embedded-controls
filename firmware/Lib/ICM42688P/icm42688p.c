@@ -5,21 +5,53 @@ SPI_TypeDef *_spi = NULL;
 GPIO_TypeDef *_csPort = NULL, *_int1Port = NULL, *_int2Port = NULL;
 uint16_t _csPin, _int1Pin, _int2Pin;
 
-uint8_t _buffer[20] = {0};                  // Store 8bits read from ICM
-uint16_t _rawMeasure[7] = {0};              // Store concatenated data from buffer
-
+uint8_t _buffer[20] = {0};                  
 ICM_DataPacket_t _currData = {0};
+ICM_RawDataPacket_t _currRawData = {0};
+
 ICM42688P_GYRO_FRS_t _gyroFSR;
 ICM42688P_ACCEL_FRS_t _accelFSR;
 ICM42688P_ODR_t _gyroODR, _accelODR;
-float _gyroFloatScale = 0.0f;
-float _accelFloatScale = 0.0f;
+float _gyroScaleFactor = 0.0f;
+float _accelScaleFactor = 0.0f;
+
+float _gyroBias[3] = {0};
+float _gyroBiasData[3] = {0};
+
+float _accBias[3] = {0};
+float _accBiasData[3] = {0};
+float _accScale[3] = {0.1f, 0.1f, 0.1f};
+float _accMax[3] = {0};
+float _accMin[3] = {0};
+
+const float _gyroScaleFactorArray[8] = {
+    0.060976,   // 2000 DPS
+    0.030488,   // 1000 DPS
+    0.015267,   // 500 DPS
+    0.007634,   // 250 DPS
+    0.003817,   // 125 DPS
+    0.001907,   // 62.5 DPS
+    0.000954,   // 31.25 DPS
+    0.000477    // 15.625 DPS
+};
+
+const float _accelScaleFactorArray[4] = {
+    0.000488,   // 16g
+    0.000244,   // 8g
+    0.000122,   // 4g
+    0.000061    // 2g
+};
+
+
 
 uint8_t _bank = 0;
 static ICM_Status_t setBank(uint8_t bank);
 static ICM_Status_t writeReg(uint8_t addr,  uint8_t data);
 static ICM_Status_t readRegs(uint8_t addr, uint8_t len, uint8_t* data);
 static uint8_t readWriteSPI(uint8_t txData);
+static inline float convertRawToAccel(int16_t raw, float bias, float scale);
+static inline float convertRawToGyro(int16_t raw, float bias);
+static inline float convertRawToTemp(int16_t raw);
 
 ICM_Status_t ICM42688P_init(SPI_TypeDef* spi, GPIO_TypeDef* csPort, uint16_t csPin, GPIO_TypeDef* int1Port, uint16_t int1Pin, GPIO_TypeDef* int2Port, uint16_t int2Pin)
 {
@@ -38,8 +70,11 @@ ICM_Status_t ICM42688P_init(SPI_TypeDef* spi, GPIO_TypeDef* csPort, uint16_t csP
 
     // Default values for ICM42688P
     _gyroFSR = GYRO_DPS_2000;
+    _gyroScaleFactor = _gyroScaleFactorArray[_gyroFSR];
     _gyroODR = ODR_1k;
+    
     _accelFSR = ACCEL_GPM_16;
+    _accelScaleFactor = _accelScaleFactorArray[_accelFSR];
     _accelODR = ODR_1k;
 
     LL_GPIO_SetOutputPin(_csPort, _csPin);
@@ -54,7 +89,7 @@ ICM_Status_t ICM42688P_init(SPI_TypeDef* spi, GPIO_TypeDef* csPort, uint16_t csP
     }
 
     // Enable power to Temp, Accel (LN), and Gyro (LN)
-    if (ICM42688P_enableSensors(true, false, GYRO_LN, ACCEL_LN) != ICM_OK)
+    if (ICM42688P_enAll(true) != ICM_OK)
     {
         $ERROR("Unable to init, failed at enabling sensors.");
         return ICM_ERROR;
@@ -89,17 +124,37 @@ uint8_t ICM42688P_whoami(void)
     return _buffer[0];
 }
 
-ICM_Status_t ICM42688P_enableSensors(bool enTemp, bool enIdle, ICM42688P_GYRO_PWR_t gyroPwr, ICM42688P_ACCEL_PWR_t accelPwr)
+ICM_Status_t ICM42688P_enAll(bool en)
+{
+    if (ICM42688P_enTemp(en) != ICM_OK)
+    {
+        return ICM_ERROR;
+    }
+
+    if (ICM42688P_enGyro(en) != ICM_OK)
+    {
+        return ICM_ERROR;
+    }
+
+    if (ICM42688P_enAccel(en) != ICM_OK)
+    {
+        return ICM_ERROR;
+    }
+
+    return ICM_OK;
+}
+
+ICM_Status_t ICM42688P_enTemp(bool en)
 {
     uint8_t reg;
 
     if (readRegs(PWR_MGMT0, 1, &reg) != ICM_OK)
     {
-        $ERROR("Read PWR_MGMT0 error in enableSensors.");
+        $ERROR("Read PWR_MGMT0 error in enTemp.");
         return ICM_ERROR;
     }
 
-    if (enTemp)
+    if (en)
     {
         reg = (reg & (~PWR_MGMT0_TEMP_DIS_MASK)) | TEMP_ENABLE;
     }
@@ -108,7 +163,26 @@ ICM_Status_t ICM42688P_enableSensors(bool enTemp, bool enIdle, ICM42688P_GYRO_PW
         reg = (reg & (~PWR_MGMT0_TEMP_DIS_MASK)) | TEMP_DISABLE;
     }
 
-    if (enIdle)
+    if (writeReg(PWR_MGMT0, reg) != ICM_OK)
+    {
+        $ERROR("Write PWR_MGMT0 reg error in enTemp.");
+        return ICM_ERROR;
+    }
+
+    return ICM_OK;
+}
+
+ICM_Status_t ICM42688P_enIdle(bool en)
+{
+    uint8_t reg;
+
+    if (readRegs(PWR_MGMT0, 1, &reg) != ICM_OK)
+    {
+        $ERROR("Read PWR_MGMT0 error in enIdle.");
+        return ICM_ERROR;
+    }
+
+    if (en)
     {
         reg = (reg & (~PWR_MGMT0_IDLE_MASK_MASK)) | IDLE_ENABLE;
     }
@@ -117,7 +191,27 @@ ICM_Status_t ICM42688P_enableSensors(bool enTemp, bool enIdle, ICM42688P_GYRO_PW
         reg = (reg & (~PWR_MGMT0_IDLE_MASK_MASK)) | IDLE_DISABLE;
     }
 
-    switch (gyroPwr)
+    if (writeReg(PWR_MGMT0, reg) != ICM_OK)
+    {
+        $ERROR("Write PWR_MGMT0 reg error in enIdle.");
+        return ICM_ERROR;
+    }
+
+    return ICM_OK;
+}
+
+
+ICM_Status_t ICM42688P_enGyro(ICM42688P_GYRO_PWR_t mode)
+{
+    uint8_t reg;
+
+    if (readRegs(PWR_MGMT0, 1, &reg) != ICM_OK)
+    {
+        $ERROR("Read PWR_MGMT0 error in enGyro.");
+        return ICM_ERROR;
+    }
+
+    switch (mode)
     {
         case (GYRO_OFF):
         {
@@ -138,7 +232,26 @@ ICM_Status_t ICM42688P_enableSensors(bool enTemp, bool enIdle, ICM42688P_GYRO_PW
             break;
     }
 
-    switch (accelPwr)
+    if (writeReg(PWR_MGMT0, reg) != ICM_OK)
+    {
+        $ERROR("Write PWR_MGMT0 reg error in enGyro.");
+        return ICM_ERROR;
+    }
+
+    return ICM_OK;
+}
+
+ICM_Status_t ICM42688P_enAccel(ICM42688P_ACCEL_PWR_t mode)
+{
+    uint8_t reg;
+
+    if (readRegs(PWR_MGMT0, 1, &reg) != ICM_OK)
+    {
+        $ERROR("Read PWR_MGMT0 error in enAccel.");
+        return ICM_ERROR;
+    }
+
+    switch (mode)
     {
         case (ACCEL_OFF):
         {
@@ -161,7 +274,7 @@ ICM_Status_t ICM42688P_enableSensors(bool enTemp, bool enIdle, ICM42688P_GYRO_PW
 
     if (writeReg(PWR_MGMT0, reg) != ICM_OK)
     {
-        $ERROR("Write PWR_MGMT0 reg error in enableSensors.");
+        $ERROR("Write PWR_MGMT0 reg error in enAccel.");
         return ICM_ERROR;
     }
 
@@ -197,7 +310,7 @@ ICM_Status_t ICM42688P_setGyroFSR(ICM42688P_GYRO_FRS_t gyroFsr)
     // Store Full Scale Range
     _gyroFSR = gyroFsr;
     // Store current dps per 1 bit change
-    _gyroFloatScale = (2000.0f / (float)(1 << gyroFsr)) / 32768.0f;
+    _gyroScaleFactor = _gyroScaleFactorArray[gyroFsr];
 
     return ICM_OK;
 }
@@ -231,7 +344,7 @@ ICM_Status_t ICM42688P_setAccelFSR(ICM42688P_ACCEL_FRS_t accelFsr)
     // Store Full Scale Range
     _accelFSR = accelFsr;
     // Store current g per 1 bit change
-    _accelFloatScale = (float)(1 << (4 - accelFsr)) / 32768.0f;
+    _accelScaleFactor = _accelScaleFactorArray[accelFsr];
 
     return ICM_OK;
 }
@@ -354,33 +467,319 @@ ICM_Status_t ICM42688P_setFilters(bool gyroFils, bool accelFils)
     return ICM_OK;
 }
 
-ICM_Status_t ICM42688P_getAccelGyroTempData(void)
+ICM_Status_t ICM42688P_calibGyro(void)
 {
-    if (readRegs(TEMP_DATA1, 14, _buffer) != ICM_OK)
+    const ICM42688P_GYRO_FRS_t currFSR = _gyroFSR;
+
+    if (ICM42688P_setGyroFSR(GYRO_DPS_250) != ICM_OK)
     {
-        $ERROR("Read TEMP_DATA1 error in getAccelGyroTempData.");
+        $ERROR("Unable to calib gyro.");
+        return ICM_ERROR;
+    }
+    
+    _gyroBiasData[0] = 0;
+    _gyroBiasData[1] = 0;
+    _gyroBiasData[2] = 0;
+
+    for (uint32_t i = 0; i < CALIBRATION_SAMPLE_SIZE; i++)
+    {
+        ICM42688P_updateGyroData();
+        _gyroBiasData[0] += (ICM42688_getGyroX() + _gyroBias[0]) / CALIBRATION_SAMPLE_SIZE;
+        _gyroBiasData[1] += (ICM42688_getGyroY() + _gyroBias[1]) / CALIBRATION_SAMPLE_SIZE;
+        _gyroBiasData[2] += (ICM42688_getGyroZ() + _gyroBias[2]) / CALIBRATION_SAMPLE_SIZE;
+        delay(1);
+    }
+
+    _gyroBias[0] = _gyroBiasData[0];
+    _gyroBias[1] = _gyroBiasData[1];
+    _gyroBias[2] = _gyroBiasData[2];
+
+    if (ICM42688P_setGyroFSR(currFSR) != ICM_OK)
+    {
         return ICM_ERROR;
     }
 
-    for (uint8_t i = 0; i < 7; i++)
+    $SUCCESS("Calibration of Gyro OK");
+    return ICM_OK;
+}
+
+ICM_Status_t ICM42688P_calibAccel(void)
+{
+    const ICM42688P_ACCEL_FRS_t currFSR = _accelFSR;
+
+    if (ICM42688P_setAccelFSR(ACCEL_GPM_2) != ICM_OK)
     {
-        _rawMeasure[i] = ((uint16_t) _buffer[i*2] << 8) | _buffer[i*2+1];
+        $ERROR("Unable to calibrate accel");
+        return ICM_ERROR;
     }
 
-    _currData.temp = ICM42688_convertRawToTemp(_rawMeasure[0]);
-    _currData.accX = _rawMeasure[1];
-    _currData.accY = _rawMeasure[2];
-    _currData.accZ = _rawMeasure[3];
-    _currData.gyroX = _rawMeasure[4];
-    _currData.gyroY = _rawMeasure[5];
-    _currData.gyroZ = _rawMeasure[6];
+    _accBiasData[0] = 0;
+    _accBiasData[1] = 0;
+    _accBiasData[2] = 0;
+
+    for (uint32_t i = 0; i < CALIBRATION_SAMPLE_SIZE; i++)
+    {
+        ICM42688P_updateAccelData();
+        _accBiasData[0] += (ICM42688_getAccX() / _accScale[0] + _accBias[0]) / CALIBRATION_SAMPLE_SIZE;
+        _accBiasData[1] += (ICM42688_getAccY() / _accScale[1] + _accBias[1]) / CALIBRATION_SAMPLE_SIZE;
+        _accBiasData[2] += (ICM42688_getAccZ() / _accScale[2] + _accBias[2]) / CALIBRATION_SAMPLE_SIZE;
+        HAL_Delay(1);
+    }
+
+    if (_accBiasData[0] > 0.9f) _accMax[0] = _accBiasData[0];
+    if (_accBiasData[1] > 0.9f) _accMax[1] = _accBiasData[1];
+    if (_accBiasData[2] > 0.9f) _accMax[2] = _accBiasData[2];
+    if (_accBiasData[0] < -0.9f) _accMin[0] = _accBiasData[0];
+    if (_accBiasData[1] < -0.9f) _accMin[1] = _accBiasData[1];
+    if (_accBiasData[2] < -0.9f) _accMin[2] = _accBiasData[2];
+
+    if ((abs(_accMin[0]) > 0.9f) && (abs(_accMax[0]) > 0.9f))
+    {
+        _accBias[0] = (_accMin[0] + _accMax[0]) / 2.0f;
+        _accScale[0] = 1 / ((abs(_accMin[0]) + abs(_accMax[0])) / 2.0f);
+    }
+    
+    if ((abs(_accMin[1]) > 0.9f) && (abs(_accMax[1]) > 0.9f))
+    {
+        _accBias[1] = (_accMin[1] + _accMax[1]) / 2.0f;
+        _accScale[1] = 1 / ((abs(_accMin[1]) + abs(_accMax[1])) / 2.0f);
+    }
+    
+    if ((abs(_accMin[2]) > 0.9f) && (abs(_accMax[2]) > 0.9f))
+    {
+        _accBias[2] = (_accMin[2] + _accMax[2]) / 2.0f;
+        _accScale[2] = 1 / ((abs(_accMin[2]) + abs(_accMax[2])) / 2.0f);
+    }
+
+    if (ICM42688P_setAccelFSR(currFSR) != ICM_OK)
+    {
+        return ICM_ERROR;
+    }
+
+    $SUCCESS("Calibration of Accel OK");
+    return ICM_OK;
+}
+
+float ICM42688P_getGyroBiasX(void)
+{
+    return _gyroBias[0];
+}
+
+float ICM42688P_getGyroBiasY(void)
+{
+    return _gyroBias[1];
+}
+
+float ICM42688P_getGyroBiasZ(void)
+{
+    return _gyroBias[2];
+}
+
+void ICM42688P_setGyroBiasX(float bias)
+{
+    _gyroBias[0] = bias;
+}
+
+void ICM42688P_setGyroBiasY(float bias)
+{
+    _gyroBias[1] = bias;
+}
+
+void ICM42688P_setGyroBiasZ(float bias)
+{
+    _gyroBias[2] = bias;
+}
+
+float ICM42688P_getAccelBiasX(void)
+{
+    return _accBias[0];
+}
+
+float ICM42688P_getAccelScaleX(void)
+{
+    return _accScale[0];
+}
+
+float ICM42688P_getAccelBiasY(void)
+{
+    return _accBias[1];
+}
+
+float ICM42688P_getAccelScaleY(void)
+{
+    return _accScale[1];
+}
+
+float ICM42688P_getAccelBiasZ(void)
+{
+    return _accBias[2];
+}
+
+float ICM42688P_getAccelScaleZ(void)
+{
+    return _accScale[2];
+}
+
+void ICM42688P_setAccelCalX(float bias, float scale)
+{
+    _accBias[0] = bias;
+    _accScale[0] = scale;
+}
+
+void ICM42688P_setAccelCalY(float bias, float scale)
+{
+    _accBias[1] = bias;
+    _accScale[1] = scale;
+}
+
+void ICM42688P_setAccelCalZ(float bias, float scale)
+{
+    _accBias[2] = bias;
+    _accScale[2] = scale;
+}
+
+
+ICM_Status_t ICM42688P_enableDataRdyInt(void)
+{
+    // Set ACTIVE HIGH, Push Pull and Pulsed Mode Interrupt on INT1 and INT2
+    if (writeReg(INT_CONFIG, 0x18 | 0x03) != ICM_OK)
+    {
+        $ERROR("Write INT_CONFIG error in enDataRdyInt");
+        return ICM_ERROR;
+    }
+
+    uint8_t reg;
+    if (readRegs(INT_CONFIG1, 1, &reg) != ICM_OK)
+    {
+        $ERROR("Read INT_CONFIG1 error in enDataRdyInt");
+        return ICM_ERROR;
+    }
+    // Clear bit 4 for proper INT1 and INT2 operation
+    reg = reg & ~(0x10);
+    if (writeReg(INT_CONFIG1, reg) != ICM_OK)
+    {
+        $ERROR("Write INT_CONFIG1 error in enDataRdyInt");
+        return ICM_ERROR;
+    }
+
+    // Route UI_DRDY_INT (and reset) to INT1
+    if (writeReg(INT_SOURCE0, 0x18) != ICM_OK)
+    {
+        $ERROR("Write INT_CONFIG1 error in enDataRdyInt");
+        return ICM_ERROR;
+    }
 
     return ICM_OK;
 }
 
-float ICM42688_convertRawToTemp(uint16_t raw)
+ICM_Status_t ICM42688P_disableDataRdyInt(void)
 {
-    return ((float)(raw) / ICM42688P_TEMP_DATA_REG_SCALE) + ICM42688P_TEMP_OFFSET;
+    uint8_t reg;
+    if (readRegs(INT_CONFIG1, 1, &reg) != ICM_OK)
+    {
+        $ERROR("Read INT_CONFIG1 error in disableDataRdyInt");
+        return ICM_ERROR;
+    }
+    // Set bit 4 to default value
+    reg = reg | 0x10; 
+    if (writeReg(INT_CONFIG1, reg) != ICM_OK)
+    {
+        $ERROR("Write INT_CONFIG1 error in disableDataRdyInt");
+        return ICM_ERROR;
+    }
+
+    // Unroute UI_DRDY_INT 
+    if (writeReg(INT_SOURCE0, 0x10) != ICM_OK)
+    {
+        $ERROR("Write INT_CONFIG1 error in enDataRdyInt");
+        return ICM_ERROR;
+    }
+
+    return ICM_OK;
+}
+
+
+ICM_Status_t ICM42688P_updateAllData(void)
+{
+    // burst read all the sensor data
+    if (readRegs(TEMP_DATA1, 14, _buffer) != ICM_OK)
+    {
+        $ERROR("Read TEMP_DATA1 error in updateAllData.");
+        return ICM_ERROR;
+    }
+
+    _currRawData.rawTemp = ((int16_t) _buffer[0] << 8) | _buffer[1];
+    _currRawData.rawAccX = ((int16_t) _buffer[2] << 8) | _buffer[3];
+    _currRawData.rawAccY = ((int16_t) _buffer[4] << 8) | _buffer[5];
+    _currRawData.rawAccZ = ((int16_t) _buffer[6] << 8) | _buffer[7];
+    _currRawData.rawGyroX = ((int16_t) _buffer[8] << 8) | _buffer[9];
+    _currRawData.rawGyroY = ((int16_t) _buffer[10] << 8) | _buffer[11];
+    _currRawData.rawGyroZ = ((int16_t) _buffer[12] << 8) | _buffer[13];
+
+
+    _currData.temp = convertRawToTemp(_currRawData.rawTemp);
+
+    _currData.accX = convertRawToAccel(_currRawData.rawAccX, _accBias[0], _accScale[0]);
+    _currData.accY = convertRawToAccel(_currRawData.rawAccY, _accBias[1], _accScale[1]);
+    _currData.accZ = convertRawToAccel(_currRawData.rawAccZ, _accBias[2], _accScale[2]);
+
+    _currData.gyroX = convertRawToGyro(_currRawData.rawGyroX, _gyroBias[0]);
+    _currData.gyroY = convertRawToGyro(_currRawData.rawGyroY, _gyroBias[1]);
+    _currData.gyroZ = convertRawToGyro(_currRawData.rawGyroZ, _gyroBias[2]);
+
+    return ICM_OK;
+}
+
+ICM_Status_t ICM42688P_updateTempData(void)
+{
+    if (readRegs(TEMP_DATA1, 2, _buffer) != ICM_OK)
+    {
+        $ERROR("Read TEMP_DATA1 error in updateTempData");
+        return ICM_ERROR;
+    }
+
+    _currRawData.rawTemp = ((int16_t) _buffer[0] << 8) | _buffer[1];
+    _currData.temp = convertRawToTemp(_currRawData.rawTemp);
+
+    return ICM_OK;
+}
+
+ICM_Status_t ICM42688P_updateAccelData(void)
+{
+    if (readRegs(ACCEL_DATA_X1, 6, _buffer) != ICM_OK)
+    {
+        $ERROR("Read TEMP_DATA1 error in updateTempData");
+        return ICM_ERROR;
+    }
+
+    _currRawData.rawAccX = ((int16_t) _buffer[0] << 8) | _buffer[1];
+    _currRawData.rawAccY = ((int16_t) _buffer[2] << 8) | _buffer[3];
+    _currRawData.rawAccZ = ((int16_t) _buffer[4] << 8) | _buffer[5];
+
+    _currData.accX = convertRawToAccel(_currRawData.rawAccX, _accBias[0], _accScale[0]);
+    _currData.accY = convertRawToAccel(_currRawData.rawAccY, _accBias[1], _accScale[1]);
+    _currData.accZ = convertRawToAccel(_currRawData.rawAccZ, _accBias[2], _accScale[2]);
+
+    return ICM_OK;
+}
+
+ICM_Status_t ICM42688P_updateGyroData(void)
+{
+    if (readRegs(GYRO_DATA_X1, 6, _buffer) != ICM_OK)
+    {
+        $ERROR("Read TEMP_DATA1 error in updateTempData");
+        return ICM_ERROR;
+    }
+
+    _currRawData.rawGyroX = ((int16_t) _buffer[0] << 8) | _buffer[1];
+    _currRawData.rawGyroY = ((int16_t) _buffer[2] << 8) | _buffer[3];
+    _currRawData.rawGyroZ = ((int16_t) _buffer[4] << 8) | _buffer[5];
+
+    _currData.gyroX = convertRawToGyro(_currRawData.rawGyroX, _gyroBias[0]);
+    _currData.gyroY = convertRawToGyro(_currRawData.rawGyroY, _gyroBias[1]);
+    _currData.gyroZ = convertRawToGyro(_currRawData.rawGyroZ, _gyroBias[2]);
+
+    return ICM_OK;
 }
 
 float ICM42688_getTemp(void)
@@ -416,6 +815,32 @@ float ICM42688_getGyroY(void)
 float ICM42688_getGyroZ(void)
 {
     return _currData.gyroZ;
+}
+
+ICM_DataPacket_t ICM42688_getData(void) 
+{
+    return _currData;
+}
+
+ICM_RawDataPacket_t ICM42688_getRawData(void) 
+{
+    return _currRawData;
+}
+
+
+static inline float convertRawToGyro(int16_t raw, float bias)
+{
+    return (raw * _gyroScaleFactor) - bias;
+}
+
+static inline float convertRawToAccel(int16_t raw, float bias, float scale)
+{
+    return ((raw * _accelScaleFactor) - bias) * scale;
+}
+
+static inline float convertRawToTemp(int16_t raw)
+{
+    return ((float)(raw) / ICM42688P_TEMP_DATA_REG_SCALE) + ICM42688P_TEMP_OFFSET;
 }
 
 /**

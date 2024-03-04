@@ -123,7 +123,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    ICM42688P_getAccelGyroTempData();
+    ICM42688P_updateAllData();
     printf("Temp: %.02f", ICM42688_getTemp());
     printf(" accelX: %.02f", ICM42688_getAccX());
     printf(" accelY: %.02f", ICM42688_getAccY());
