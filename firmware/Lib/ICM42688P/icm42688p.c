@@ -1,5 +1,6 @@
 #include "icm42688p.h"
 #include "icm42688p_regs.h"
+#include <math.h>
 
 SPI_TypeDef *_spi = NULL;
 GPIO_TypeDef *_csPort = NULL, *_int1Port = NULL, *_int2Port = NULL;
@@ -41,8 +42,6 @@ const float _accelScaleFactorArray[4] = {
     0.000122,   // 4g
     0.000061    // 2g
 };
-
-
 
 uint8_t _bank = 0;
 static ICM_Status_t setBank(uint8_t bank);
@@ -88,7 +87,9 @@ ICM_Status_t ICM42688P_init(SPI_TypeDef* spi, GPIO_TypeDef* csPort, uint16_t csP
         return ICM_ERROR;
     }
 
-    // Enable power to Temp, Accel (LN), and Gyro (LN)
+    // ICM42688P_setFilters(true, true);
+
+    // Enable Temp, Accel (LN), and Gyro (LN)
     if (ICM42688P_enAll(true) != ICM_OK)
     {
         $ERROR("Unable to init, failed at enabling sensors.");
@@ -131,12 +132,12 @@ ICM_Status_t ICM42688P_enAll(bool en)
         return ICM_ERROR;
     }
 
-    if (ICM42688P_enGyro(en) != ICM_OK)
+    if (ICM42688P_enGyro(GYRO_LN) != ICM_OK)
     {
         return ICM_ERROR;
     }
 
-    if (ICM42688P_enAccel(en) != ICM_OK)
+    if (ICM42688P_enAccel(ACCEL_LN) != ICM_OK)
     {
         return ICM_ERROR;
     }
@@ -487,7 +488,7 @@ ICM_Status_t ICM42688P_calibGyro(void)
         _gyroBiasData[0] += (ICM42688_getGyroX() + _gyroBias[0]) / CALIBRATION_SAMPLE_SIZE;
         _gyroBiasData[1] += (ICM42688_getGyroY() + _gyroBias[1]) / CALIBRATION_SAMPLE_SIZE;
         _gyroBiasData[2] += (ICM42688_getGyroZ() + _gyroBias[2]) / CALIBRATION_SAMPLE_SIZE;
-        delay(1);
+        HAL_Delay(1);
     }
 
     _gyroBias[0] = _gyroBiasData[0];
@@ -533,22 +534,22 @@ ICM_Status_t ICM42688P_calibAccel(void)
     if (_accBiasData[1] < -0.9f) _accMin[1] = _accBiasData[1];
     if (_accBiasData[2] < -0.9f) _accMin[2] = _accBiasData[2];
 
-    if ((abs(_accMin[0]) > 0.9f) && (abs(_accMax[0]) > 0.9f))
+    if ((fabs(_accMin[0]) > 0.9f) && (fabs(_accMax[0]) > 0.9f))
     {
         _accBias[0] = (_accMin[0] + _accMax[0]) / 2.0f;
-        _accScale[0] = 1 / ((abs(_accMin[0]) + abs(_accMax[0])) / 2.0f);
+        _accScale[0] = 1 / ((fabs(_accMin[0]) + fabs(_accMax[0])) / 2.0f);
     }
     
-    if ((abs(_accMin[1]) > 0.9f) && (abs(_accMax[1]) > 0.9f))
+    if ((fabs(_accMin[1]) > 0.9f) && (fabs(_accMax[1]) > 0.9f))
     {
         _accBias[1] = (_accMin[1] + _accMax[1]) / 2.0f;
-        _accScale[1] = 1 / ((abs(_accMin[1]) + abs(_accMax[1])) / 2.0f);
+        _accScale[1] = 1 / ((fabs(_accMin[1]) + fabs(_accMax[1])) / 2.0f);
     }
     
-    if ((abs(_accMin[2]) > 0.9f) && (abs(_accMax[2]) > 0.9f))
+    if ((fabs(_accMin[2]) > 0.9f) && (fabs(_accMax[2]) > 0.9f))
     {
         _accBias[2] = (_accMin[2] + _accMax[2]) / 2.0f;
-        _accScale[2] = 1 / ((abs(_accMin[2]) + abs(_accMax[2])) / 2.0f);
+        _accScale[2] = 1 / ((fabs(_accMin[2]) + fabs(_accMax[2])) / 2.0f);
     }
 
     if (ICM42688P_setAccelFSR(currFSR) != ICM_OK)
@@ -827,7 +828,6 @@ ICM_RawDataPacket_t ICM42688_getRawData(void)
     return _currRawData;
 }
 
-
 static inline float convertRawToGyro(int16_t raw, float bias)
 {
     return (raw * _gyroScaleFactor) - bias;
@@ -852,7 +852,7 @@ static inline float convertRawToTemp(int16_t raw)
 static ICM_Status_t setBank(uint8_t bank)
 {
     ICM_Status_t ret = ICM_OK;
-    if (bank < 0 || bank > 4)
+    if (bank > 4)
     {
         ret = ICM_ERROR;
     }
