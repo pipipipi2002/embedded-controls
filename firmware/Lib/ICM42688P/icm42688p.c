@@ -10,22 +10,27 @@ uint8_t _buffer[20] = {0};
 ICM_DataPacket_t _currData = {0};
 ICM_RawDataPacket_t _currRawData = {0};
 
-ICM42688P_GYRO_FRS_t _gyroFSR;
-ICM42688P_ACCEL_FRS_t _accelFSR;
-ICM42688P_ODR_t _gyroODR, _accelODR;
-float _gyroScaleFactor = 0.0f;
-float _accelScaleFactor = 0.0f;
 
+ICM42688P_GYRO_FSR_t _gyroFSR;
+ICM42688P_ACCEL_FSR_t _accelFSR;
+ICM42688P_ODR_t _gyroODR, _accelODR;
+
+/* Sensitivity Scale Factor */
+float _gyroSSF = 0.0f;
+float _accelSSF = 0.0f;
+
+/* Gyro Calibration Variables*/
 float _gyroBias[3] = {0};
 float _gyroBiasData[3] = {0};
 
+/* Accel Calibration Variables */
 float _accBias[3] = {0};
 float _accBiasData[3] = {0};
 float _accScale[3] = {1.0f, 1.0f, 1.0f};
 float _accMax[3] = {0};
 float _accMin[3] = {0};
 
-const float _gyroScaleFactorArray[8] = {
+const float _gyroSSFArray[8] = {
     0.060976,   // 2000 DPS
     0.030488,   // 1000 DPS
     0.015267,   // 500 DPS
@@ -36,7 +41,7 @@ const float _gyroScaleFactorArray[8] = {
     0.000477    // 15.625 DPS
 };
 
-const float _accelScaleFactorArray[4] = {
+const float _accelSSFArray[4] = {
     0.000488,   // 16g
     0.000244,   // 8g
     0.000122,   // 4g
@@ -69,11 +74,11 @@ ICM_Status_t ICM42688P_init(SPI_TypeDef* spi, GPIO_TypeDef* csPort, uint16_t csP
 
     // Default values for ICM42688P
     _gyroFSR = GYRO_DPS_2000;
-    _gyroScaleFactor = _gyroScaleFactorArray[_gyroFSR];
+    _gyroSSF = _gyroSSFArray[_gyroFSR];
     _gyroODR = ODR_1k;
     
     _accelFSR = ACCEL_GPM_16;
-    _accelScaleFactor = _accelScaleFactorArray[_accelFSR];
+    _accelSSF = _accelSSFArray[_accelFSR];
     _accelODR = ODR_1k;
 
     LL_GPIO_SetOutputPin(_csPort, _csPin);
@@ -81,13 +86,12 @@ ICM_Status_t ICM42688P_init(SPI_TypeDef* spi, GPIO_TypeDef* csPort, uint16_t csP
 
     // Check for device ID
     uint8_t whoami = ICM42688P_whoami();
-    if (whoami != ICM42688P_WHOAMI_BYTE)
+    // if (whoami != ICM42688P_WHOAMI_BYTE)
+    if (whoami != ICM40609D_WHOAMI_BYTE)
     {
         $ERROR("Wrong WHOAMI. Exp %d, Recv %d.", ICM42688P_WHOAMI_BYTE, whoami);
         return ICM_ERROR;
     }
-
-    self_test();
 
     // ICM42688P_setFilters(true, true);
 
@@ -289,7 +293,7 @@ ICM_Status_t ICM42688P_enAccel(ICM42688P_ACCEL_PWR_t mode)
     return ICM_OK;
 }
 
-ICM_Status_t ICM42688P_setGyroFSR(ICM42688P_GYRO_FRS_t gyroFsr)
+ICM_Status_t ICM42688P_setGyroFSR(ICM42688P_GYRO_FSR_t gyroFsr)
 {
     if (gyroFsr ==  _gyroFSR)
     {
@@ -318,12 +322,12 @@ ICM_Status_t ICM42688P_setGyroFSR(ICM42688P_GYRO_FRS_t gyroFsr)
     // Store Full Scale Range
     _gyroFSR = gyroFsr;
     // Store current dps per 1 bit change
-    _gyroScaleFactor = _gyroScaleFactorArray[gyroFsr];
+    _gyroSSF = _gyroSSFArray[gyroFsr];
 
     return ICM_OK;
 }
 
-ICM_Status_t ICM42688P_setAccelFSR(ICM42688P_ACCEL_FRS_t accelFsr)
+ICM_Status_t ICM42688P_setAccelFSR(ICM42688P_ACCEL_FSR_t accelFsr)
 {
     if (accelFsr == _accelFSR)
     {
@@ -352,7 +356,7 @@ ICM_Status_t ICM42688P_setAccelFSR(ICM42688P_ACCEL_FRS_t accelFsr)
     // Store Full Scale Range
     _accelFSR = accelFsr;
     // Store current g per 1 bit change
-    _accelScaleFactor = _accelScaleFactorArray[accelFsr];
+    _accelSSF = _accelSSFArray[accelFsr];
 
     return ICM_OK;
 }
@@ -477,7 +481,7 @@ ICM_Status_t ICM42688P_setFilters(bool gyroFils, bool accelFils)
 
 ICM_Status_t ICM42688P_calibGyro(void)
 {
-    const ICM42688P_GYRO_FRS_t currFSR = _gyroFSR;
+    const ICM42688P_GYRO_FSR_t currFSR = _gyroFSR;
 
     if (ICM42688P_setGyroFSR(GYRO_DPS_250) != ICM_OK)
     {
@@ -513,7 +517,7 @@ ICM_Status_t ICM42688P_calibGyro(void)
 
 ICM_Status_t ICM42688P_calibAccel(void)
 {
-    const ICM42688P_ACCEL_FRS_t currFSR = _accelFSR;
+    const ICM42688P_ACCEL_FSR_t currFSR = _accelFSR;
 
     if (ICM42688P_setAccelFSR(ACCEL_GPM_2) != ICM_OK)
     {
@@ -837,12 +841,12 @@ ICM_RawDataPacket_t ICM42688_getRawData(void)
 
 static inline float convertRawToGyro(int16_t raw, float bias)
 {
-    return (raw * _gyroScaleFactor) - bias;
+    return (raw * _gyroSSF) - bias;
 }
 
 static inline float convertRawToAccel(int16_t raw, float bias, float scale)
 {
-    return ((raw * _accelScaleFactor) - bias) * scale;
+    return ((raw * _accelSSF) - bias) * scale;
 }
 
 static inline float convertRawToTemp(int16_t raw)

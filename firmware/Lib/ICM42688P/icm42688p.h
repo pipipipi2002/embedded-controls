@@ -62,14 +62,14 @@ typedef enum {
 	GYRO_DPS_62_5 	= 5,
 	GYRO_DPS_31_25 	= 6,
 	GYRO_DPS_15_625 = 7
-} ICM42688P_GYRO_FRS_t;
+} ICM42688P_GYRO_FSR_t;
 
 typedef enum {
 	ACCEL_GPM_16 	= 0,
 	ACCEL_GPM_8 	= 1,
 	ACCEL_GPM_4 	= 2,
 	ACCEL_GPM_2 	= 3
-} ICM42688P_ACCEL_FRS_t;
+} ICM42688P_ACCEL_FSR_t;
 
 typedef enum {
 	ODR_32k		= 1,	// LN Mode Only
@@ -110,8 +110,8 @@ ICM_Status_t ICM42688P_enTemp(bool en);
 ICM_Status_t ICM42688P_enGyro(ICM42688P_GYRO_PWR_t mode);
 ICM_Status_t ICM42688P_enAccel(ICM42688P_ACCEL_PWR_t mode);
 
-ICM_Status_t ICM42688P_setGyroFSR(ICM42688P_GYRO_FRS_t gyroFsr);
-ICM_Status_t ICM42688P_setAccelFSR(ICM42688P_ACCEL_FRS_t accelFsr);
+ICM_Status_t ICM42688P_setGyroFSR(ICM42688P_GYRO_FSR_t gyroFsr);
+ICM_Status_t ICM42688P_setAccelFSR(ICM42688P_ACCEL_FSR_t accelFsr);
 ICM_Status_t ICM42688P_setGyroODR(ICM42688P_ODR_t gyroOdr);
 ICM_Status_t ICM42688P_setAccelODR(ICM42688P_ODR_t accelOdr);
 ICM_Status_t ICM42688P_setFilters(bool gyroFils, bool accelFils);
