@@ -32,9 +32,7 @@ static inline float convertRawToGyro(float ssf, int16_t raw, float bias);
 static inline float convertRawToTemp(int16_t raw);
 
 ICM_Status_t ICM_init(ICM_Config_t* icm)
-{
-    memset(icm, 0, sizeof(ICM_Config_t));
-    
+{   
     switch (icm->id)
     {
         case ICM40609D_ID:
