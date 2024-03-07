@@ -23,6 +23,8 @@
 /* USER CODE BEGIN Includes */
 #include <printf.h>
 #include "icm42688p.h"
+#include "icm40609d.h"
+#include "icm_driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,6 +48,27 @@ UART_HandleTypeDef huart5;
 
 /* USER CODE BEGIN PV */
 float roll, pitch, yaw;
+ICM_Config_t icm40609d_cfg = {
+  .id = ICM40609D_ID,
+  .hal.spi = SPI1,
+  .hal.csPort = ICM40609D_CS_GPIO_Port,
+  .hal.csPin = ICM40609D_CS_Pin,
+  .hal.int1Port = ICM40609D_INT1_GPIO_Port,
+  .hal.int1Pin = ICM40609D_INT1_Pin,
+  .hal.int2Port = ICM40609D_INT2_GPIO_Port,
+  .hal.int2Pin = ICM40609D_INT2_Pin,
+};
+
+ICM_Config_t icm42688p_cfg = {
+  .id = ICM42688P_ID,
+  .hal.spi = SPI3,
+  .hal.csPort = ICM42688P_CS_GPIO_Port,
+  .hal.csPin = ICM42688P_CS_Pin,
+  .hal.int1Port = ICM42688P_INT1_GPIO_Port,
+  .hal.int1Pin = ICM42688P_INT1_Pin,
+  .hal.int2Port = ICM42688P_INT2_GPIO_Port,
+  .hal.int2Pin = ICM42688P_INT2_Pin,
+};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -104,8 +127,7 @@ int main(void)
   /* Turns on power to the sensor board */
   LL_GPIO_SetOutputPin(EN_3V3_GPIO_Port, EN_3V3_Pin);
 
-  // uint8_t ret = ICM42688P_init(SPI3, ICM42688P_CS_GPIO_Port, ICM42688P_CS_Pin, ICM42688P_INT1_GPIO_Port, ICM42688P_INT2_Pin, ICM42688P_INT2_GPIO_Port, ICM42688P_INT2_Pin);
-  uint8_t ret = ICM42688P_init(SPI1, ICM40609D_CS_GPIO_Port, ICM40609D_CS_Pin, ICM40609D_INT1_GPIO_Port, ICM40609D_INT1_Pin, ICM40609D_INT2_GPIO_Port, ICM40609D_INT2_Pin);
+  uint8_t ret = ICM_init(&icm42688p_cfg);
   if (ret != ICM_OK) {
     printf("ICM init failed\r\n");
     Error_Handler();
@@ -115,9 +137,9 @@ int main(void)
     printf("ICM init completed\r\n");
   }
 
-  ICM42688P_calibGyro();
-  ICM42688P_calibAccel();
-  printf("Gyro Bias X Y Z: %0.2f %0.2f %0.2f\r\n", ICM42688P_getGyroBiasX(), ICM42688P_getGyroBiasY(), ICM42688P_getGyroBiasZ());
+  ICM_calibGyro(&icm42688p_cfg);
+  // ICM_calibAccel();
+  printf("Gyro Bias X Y Z: %0.2f %0.2f %0.2f\r\n", ICM_getGyroBiasX(&icm42688p_cfg), ICM_getGyroBiasY(&icm42688p_cfg), ICM_getGyroBiasZ(&icm42688p_cfg));
 
   /* USER CODE END 2 */
 
@@ -128,15 +150,15 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    ICM42688P_updateAllData();
+    ICM_updateAllData(&icm42688p_cfg);
 
-    printf("Temp: %.02f ", ICM42688_getTemp());
-    printf("accelX: %.02f ", ICM42688_getAccX());
-    printf("accelY: %.02f ", ICM42688_getAccY());
-    printf("accelZ: %.02f\r\n", ICM42688_getAccZ());
-    printf("GyroX: %.02f ", ICM42688_getGyroX());
-    printf("GyroY: %.02f ", ICM42688_getGyroY());
-    printf("GyroZ: %.02f\r\n", ICM42688_getGyroZ());
+    printf("Temp: %.02f ", ICM_getTemp(&icm42688p_cfg));
+    printf("accelX: %.02f ", ICM_getAccX(&icm42688p_cfg));
+    printf("accelY: %.02f ", ICM_getAccY(&icm42688p_cfg));
+    printf("accelZ: %.02f\r\n", ICM_getAccZ(&icm42688p_cfg));
+    printf("GyroX: %.02f ", ICM_getGyroX(&icm42688p_cfg));
+    printf("GyroY: %.02f ", ICM_getGyroY(&icm42688p_cfg));
+    printf("GyroZ: %.02f\r\n", ICM_getGyroZ(&icm42688p_cfg));
     
     HAL_Delay(250);
   }

@@ -6,7 +6,8 @@
         "cmath": "c",
         "bno08x.h": "c",
         "stdbool.h": "c",
-        "icm42688p_regs.h": "c"
+        "icm42688p_regs.h": "c",
+        "icm_driver.h": "c"
     },
     "cortex-debug.variableUseNaturalFormat": true,
     "cortex-debug.armToolchainPath": "/Applications/ArmGNUToolchain/12.3.rel1/arm-none-eabi/bin/",

@@ -1,7 +1,7 @@
 /**
- * @file icm42688p_regs.h
+ * @file icm_regs.h
  * @author Marvin Pranajaya (pipipipi2002)
- * @brief Registers for ICM IMU range. Checked on datasheets from ICM42688P.
+ * @brief Registers for ICM IMU (ICM40609D and ICM42488P)
  * @version 0.1
  * @date 2024-03-01
  * 
@@ -9,14 +9,28 @@
  * 
  */
 
-#ifndef INC_ICM42688P_REGS_H
-#define INC_ICM42688P_REGS_H
+#ifndef INC_ICM_REGS_H
+#define INC_ICM_REGS_H
 
 #define ICM42688P_WHOAMI_BYTE   (0x47)
 #define ICM40609D_WHOAMI_BYTE   (0x3B)
 
-#define ICM42688P_TEMP_DATA_REG_SCALE   (132.48f)
-#define ICM42688P_TEMP_OFFSET           (25.0f)
+#define TEMP_DATA_REG_SCALE     (132.48f)
+#define TEMP_OFFSET             (25.0f)
+
+#define ICM42688P_GYRO_FSR_DEF  (0)
+#define ICM42688P_GYRO_ODR_DEF  (6)
+#define ICM42688P_GYRO_SSF_DEF  (0)     // _gyroSSFArray index
+#define ICM42688P_ACC_FSR_DEF   (0)
+#define ICM42688P_ACC_ODR_DEF   (6)     
+#define ICM42688P_ACC_SSF_DEF   (1)     // _accelSSFArray index
+
+#define ICM40609D_GYRO_FSR_DEF  (0)
+#define ICM40609D_GYRO_ODR_DEF  (6)
+#define ICM40609D_GYRO_SSF_DEF  (0)     // _gyroSSFArray index
+#define ICM40609D_ACC_FSR_DEF   (0)
+#define ICM40609D_ACC_ODR_DEF   (6)     
+#define ICM40609D_ACC_SSF_DEF   (0)     // _accelSSFArray index
 
 /* ===========================================
  * BANK0, 1, 2, 3, 4 ADDRESSES
@@ -47,14 +61,14 @@
 #define FIFO_COUNTH             (0x2E)
 #define FIFO_COUNTL             (0x2F)
 #define FIFO_DATA               (0x30)
-#define APEX_DATA0              (0x31)
-#define APEX_DATA1              (0x32)
-#define APEX_DATA2              (0x33)
-#define APEX_DATA3              (0x34)
-#define APEX_DATA4              (0x35)
-#define APEX_DATA5              (0x36)
+#define APEX_DATA0              (0x31)      // Only for ICM42688P
+#define APEX_DATA1              (0x32)      // Only for ICM42688P
+#define APEX_DATA2              (0x33)      // Only for ICM42688P
+#define APEX_DATA3              (0x34)      // Only for ICM42688P
+#define APEX_DATA4              (0x35)      // Only for ICM42688P
+#define APEX_DATA5              (0x36)      // Only for ICM42688P
 #define INT_STATUS2             (0x37)
-#define INT_STATUS3             (0x38)
+#define INT_STATUS3             (0x38)      // Only for ICM42688P
 #define SIGNAL_PATH_RESET       (0x4B)    
 #define INTF_CONFIG0            (0x4C)
 #define INTF_CONFIG1            (0x4D)
@@ -65,8 +79,9 @@
 #define GYRO_ACCEL_CONFIG0      (0x52)
 #define ACCEL_CONFIG1           (0x53)
 #define TMST_CONFIG             (0x54)
-#define APEX_CONFIG0            (0x56)
-#define SMD_CONFIG              (0x57)
+#define APEX_CONFIG0            (0x56)      // Only for ICM42688P
+#define SMD_CONFIG              (0x57)      // Only for ICM42688P
+#define WOM_CONFIG              (0x57)      // Only for ICM40609D
 #define FIFO_CONFIG1            (0x5F)
 #define FIFO_CONFIG2            (0x60)
 #define FIFO_CONFIG3            (0x61)
@@ -102,8 +117,8 @@
 #define TMSTVAL2                (0x63)
 #define TMSTVAL3                (0x64)
 #define INTF_CONFIG4            (0x7A)    
-#define INTF_CONFIG5            (0x7B)    
-#define INTF_CONFIG6            (0x7C)    
+#define INTF_CONFIG5            (0x7B)   
+#define INTF_CONFIG6            (0x7C)      // Only for ICM42688P
 
 
 /* BANK2 */
@@ -115,26 +130,26 @@
 #define ZA_ST_DATA              (0x3D)
 
 /* BANK3 */
-#define CLKDIV                  (0x2A)
+#define CLKDIV                  (0x2A)      // Only for ICM42688P
 
 /* BANK4 */
-#define APEX_CONFIG1            (0x40)
-#define APEX_CONFIG2            (0x41)
-#define APEX_CONFIG3            (0x42)
-#define APEX_CONFIG4            (0x43)
-#define APEX_CONFIG5            (0x44)
-#define APEX_CONFIG6            (0x45)
-#define APEX_CONFIG7            (0x46)
-#define APEX_CONFIG8            (0x47)
-#define APEX_CONFIG9            (0x48)
+#define APEX_CONFIG1            (0x40)      // Only for ICM42688P
+#define APEX_CONFIG2            (0x41)      // Only for ICM42688P
+#define APEX_CONFIG3            (0x42)      // Only for ICM42688P
+#define APEX_CONFIG4            (0x43)      // Only for ICM42688P
+#define APEX_CONFIG5            (0x44)      // Only for ICM42688P
+#define APEX_CONFIG6            (0x45)      // Only for ICM42688P
+#define APEX_CONFIG7            (0x46)      // Only for ICM42688P
+#define APEX_CONFIG8            (0x47)      // Only for ICM42688P
+#define APEX_CONFIG9            (0x48)      // Only for ICM42688P
 #define ACCEL_WOM_X_THR         (0x4A)
 #define ACCEL_WOM_Y_THR         (0x4B)
 #define ACCEL_WOM_Z_THR         (0x4C)
-#define INT_SOURCE6             (0x4D)
-#define INT_SOURCE7             (0x4E)
-#define INT_SOURCE8             (0x4F)
-#define INT_SOURCE9             (0x50)
-#define INT_SOURCE10            (0x51)    
+#define INT_SOURCE6             (0x4D)      // Only for ICM42688P
+#define INT_SOURCE7             (0x4E)      // Only for ICM42688P
+#define INT_SOURCE8             (0x4F)      // Only for ICM42688P
+#define INT_SOURCE9             (0x50)      // Only for ICM42688P
+#define INT_SOURCE10            (0x51)      // Only for ICM42688P    
 #define OFFSET_USER0            (0x77)    
 #define OFFSET_USER1            (0x78)    
 #define OFFSET_USER2            (0x79)    
@@ -357,6 +372,9 @@
 #define INTF_CONFIG0_UI_SIFS_CFG_POS            (0x0)
 #define INTF_CONFIG0_UI_SIFS_CFG_MASK           (0x3)
 
+#define INTF_CONFIG1_EN_TEST_MODE_POS           (0x6)
+#define INTF_CONFIG1_EN_TEST_MODE_MASK          (0x3 << INTF_CONFIG1_EN_TEST_MODE_POS)
+
 #define INTF_CONFIG1_ACCEL_LP_CLK_SEL_POS       (0x3)
 #define INTF_CONFIG1_ACCEL_LP_CLK_SEL_MASK      (0x1 << INTF_CONFIG1_ACCEL_LP_CLK_SEL_POS)
 
@@ -485,6 +503,15 @@
 
 #define SMD_CONFIG_SMD_MODE_POS                 (0x0)
 #define SMD_CONFIG_SMD_MODE_MASK                (0x3)
+
+#define WOM_CONFIG_WOM_INT_MODE_POS             (0x3)
+#define WOM_CONFIG_WOM_INT_MODE_MASK            (0x1 << SMD_CONFIG_WOM_INT_MODE_POS)
+
+#define WOM_CONFIG_WOM_MODE_POS                 (0x2)
+#define WOM_CONFIG_WOM_MODE_MASK                (0x1 << SMD_CONFIG_WOM_MODE_POS)
+
+#define WOM_CONFIG_WOM_MODE1_POS                 (0x0)
+#define WOM_CONFIG_WOM_MODE1_MASK                (0x3)
 
 #define FIFO_CONFIG1_FIFO_RESUME_PARTIAL_RD_POS     (0x6)
 #define FIFO_CONFIG1_FIFO_RESUME_PARTIAL_RD_MASK    (0x1 << FIFO_CONFIG1_FIFO_RESUME_PARTIAL_RD_POS)
@@ -729,6 +756,12 @@
 #define GYRO_CONFIG_STATIC10_GYRO_NF_BW_SEL_POS         (0x4)
 #define GYRO_CONFIG_STATIC10_GYRO_NF_BW_SEL_MASK        (0x7 << GYRO_CONFIG_STATIC10_GYRO_NF_BW_SEL_POS)
 
+#define GYRO_CONFIG_STATIC10_GYRO_HPF_BW_IND_POS        (0x1)
+#define GYRO_CONFIG_STATIC10_GYRO_HPF_BW_IND_MASK       (0x7 << GYRO_CONFIG_STATIC10_GYRO_HPF_BW_IND_POS)
+
+#define GYRO_CONFIG_STATIC10_GYRO_HPF_ORD_IND_POS       (0x0)
+#define GYRO_CONFIG_STATIC10_GYRO_HPF_ORD_IND_MASK      (0x1)
+
 #define XG_ST_DATA_XG_ST_DATA_POS                   (0x0)
 #define XG_ST_DATA_XG_ST_DATA_MASK                  (0xFF)
 
@@ -774,7 +807,6 @@
 #define INTF_CONFIG6_I3C_SDR_EN_POS                 (0x0)
 #define INTF_CONFIG6_I3C_SDR_EN_MASK                (0x1)
 
-
 /* ===========================================
  * Register BANK2
  * =========================================== */
@@ -814,7 +846,6 @@
  * =========================================== */
 #define CLKDIV_CLKDIV_POS                           (0x0)
 #define CLKDIV_CLKDIV_MASK                          (0xFF)
-
 
 /* ===========================================
  * Register BANK4
@@ -1002,4 +1033,4 @@
 #define OFFSET_USER8_ACCEL_Z_OFFUSER_POS            (0x0)
 #define OFFSET_USER8_ACCEL_Z_OFFUSER_MASK           (0xFF)
 
-#endif // INC_ICM42688P_REGS_H
+#endif // INC_ICM_REGS_H
