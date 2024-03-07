@@ -104,7 +104,6 @@ typedef struct ICM_Config {
 	ICM_GyroConfig_t gyroCfg;   // Config for Gyro
 	ICM_AccConfig_t accCfg;     // Config for Accel
     uint8_t bank;               // ICM internal bank
-	uint8_t buff[20];           // Receive buffer for SPI
 } ICM_Config_t;
 
 // ICM_Status_t ICM42688P_init(SPI_TypeDef* spi, GPIO_TypeDef* csPort, uint16_t csPin, GPIO_TypeDef* int1Port, uint16_t int1Pin, GPIO_TypeDef* int2Port, uint16_t int2Pin);
