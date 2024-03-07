@@ -346,13 +346,13 @@ void BNO08X_parseInputReport(void)
 		}
 		case SHTP_REPORT_COMMAND_RESPONSE:
 		{
-			//printf("!");
+			//$INFO("!");
 			//The BNO08X responds with this report to command requests. It's up to use to remember which command we issued.
 			uint8_t command = shtpData[5 + 2]; //This is the Command byte of the response
 
 			if (command == COMMAND_ME_CALIBRATE)
 			{
-				//printf("ME Cal report found!");
+				//$INFO("ME Cal report found!");
 				calibrationStatus = shtpData[5 + 5]; //R0 - Status (0 = success, non-zero = fail)
 			}
 			break;
@@ -685,7 +685,7 @@ int BNO08X_readFRSdata(uint16_t recordID, uint8_t startLocation, uint8_t wordsTo
 
 		if (spot >= MAX_METADATA_SIZE)
 		{
-			printf("metaData array over run. Returning.");
+			$ERROR("metaData array over run. Returning.");
 			return (1); //We have run out of space in our array. Bail.
 		}
 
@@ -981,12 +981,12 @@ int BNO08X_waitForSPI(void)
 	{
         if (LL_GPIO_IsInputPinSet(_intPort, _intPin) == 0)
 		{
-			//printf("\nData available\n");
+			//$INFO("\nData available\n");
 			return (1);
 		}
-		//printf("SPI Wait %d\n", counter);
+		//$INFO("SPI Wait %d\n", counter);
 	}
-	printf("\nData not available\n");
+	$ERROR("\nData not available\n");
 	return (0);
 }
 
@@ -1030,17 +1030,17 @@ int BNO08X_receivePacket(void)
 	}
 	dataLength -= 4; //Remove the header bytes from the data count
 
-	//printf("length: %d\n", dataLength);
+	//$INFO("length: %d\n", dataLength);
 
 	//Read incoming data into the shtpData array
 	for (uint16_t dataSpot = 0; dataSpot < dataLength; dataSpot++)
 	{
 		incoming = SPI2_SendByte(0xFF);
-		//printf("%d ", incoming);
+		//$INFO("%d ", incoming);
 		if (dataSpot < MAX_PACKET_SIZE)	//BNO08X can respond with upto 270 bytes, avoid overflow
 			shtpData[dataSpot] = incoming; //Store data into the shtpData array
 	}
-	//printf("\n");
+	//$INFO("\n");
 
     LL_GPIO_SetOutputPin(_csPort, _csPin);
 	return (1); //We're done!

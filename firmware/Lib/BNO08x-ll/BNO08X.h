@@ -70,15 +70,11 @@ enum Registers
 	#define $INFO(fmt, ...)
 	#define $ERROR(fmt, ...) 
 	#define $SUCCESS(fmt, ...) 
-#elif defined (USE_LOGGER)
-	#define $INFO(fmt, ...) log_pInfo(fmt, ##__VA_ARGS__)
-	#define $ERROR(fmt, ...) log_pError(fmt, ##__VA_ARGS__)
-	#define $SUCCESS(fmt, ...) log_pSuccess(fmt, ##__VA_ARGS__)
 #else
 	#include <printf.h>
-	#define $INFO(fmt, ...)     printf("[BNO08X] "); printf(fmt, ##__VA_ARGS__); printf("\n\r")
-	#define $ERROR(fmt, ...)    printf("[BNO08X] "); printf(fmt, ##__VA_ARGS__); printf("\n\r")
-	#define $SUCCESS(fmt, ...)  printf("[BNO08X] "); printf(fmt, ##__VA_ARGS__); printf("\n\r")
+	#define $INFO(fmt, ...)     printf(PF_SWO, "[BNO08X] "); printf(PF_SWO, fmt, ##__VA_ARGS__); printf(PF_SWO, "\n\r")
+	#define $ERROR(fmt, ...)    printf(PF_SWO, "[BNO08X] "); printf(PF_SWO, fmt, ##__VA_ARGS__); printf(PF_SWO, "\n\r")
+	#define $SUCCESS(fmt, ...)  printf(PF_SWO, "[BNO08X] "); printf(PF_SWO, fmt, ##__VA_ARGS__); printf(PF_SWO, "\n\r")
 #endif 
 
 //All the ways we can configure or talk to the BNO080, figure 34, page 36 reference manual

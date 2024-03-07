@@ -21,9 +21,9 @@
 
 #if defined (USE_PRINTF_LIB)
 	#include <printf.h>
-	#define $INFO(fmt, ...)     printf("[ICM] "); printf(fmt, ##__VA_ARGS__); printf("\n\r")
-	#define $ERROR(fmt, ...)    printf("[ICM] "); printf(fmt, ##__VA_ARGS__); printf("\n\r")
-	#define $SUCCESS(fmt, ...)  printf("[ICM] "); printf(fmt, ##__VA_ARGS__); printf("\n\r")
+	#define $INFO(fmt, ...)     printf(PF_SWO, "[ICM] "); printf(PF_SWO, fmt, ##__VA_ARGS__); printf(PF_SWO, "\n\r")
+	#define $ERROR(fmt, ...)    printf(PF_SWO, "[ICM] "); printf(PF_SWO, fmt, ##__VA_ARGS__); printf(PF_SWO, "\n\r")
+	#define $SUCCESS(fmt, ...)  printf(PF_SWO, "[ICM] "); printf(PF_SWO, fmt, ##__VA_ARGS__); printf(PF_SWO, "\n\r")
 #else
     #define $INFO(fmt, ...)
 	#define $ERROR(fmt, ...) 
