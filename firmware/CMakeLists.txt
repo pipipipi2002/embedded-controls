@@ -76,6 +76,7 @@ target_link_options(${EXECUTABLE} PRIVATE
     ${CPU_PARAMETERS}
     -Wl,-Map=${CMAKE_PROJECT_NAME}.map -Wl,--cref
     --specs=nosys.specs
+    --specs=nano.specs
     -Wl,--start-group
     -lc
     -lm
