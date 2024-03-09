@@ -10,7 +10,7 @@
                 "${workspaceFolder}/Drivers/CMSIS/Device/ST/STM32F4xx/Include",
                 "${workspaceFolder}/Lib/printf",
                 "${workspaceFolder}/Lib/BNO08x-shtp/inc",
-                "${workspaceFolder}/Lib/ICM42688P"
+                "${workspaceFolder}/Lib/ICM_imu"
             ],
             "defines": [
                 "USE_HAL_DRIVER",

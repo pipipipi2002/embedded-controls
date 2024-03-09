@@ -80,6 +80,8 @@ static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_SPI4_Init(void);
 /* USER CODE BEGIN PFP */
+void sendCsv(ICM_Config_t *icm);
+void sendVerbose(ICM_Config_t* icm);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -129,6 +131,7 @@ int main(void)
 
   uint8_t ret = ICM_init(&icm42688p_cfg);
   ret |= ICM_init(&icm40609d_cfg);
+  
   if (ret != ICM_OK) {
     printf(PF_SWO, "ICM init failed\r\n");
     Error_Handler();
@@ -140,9 +143,8 @@ int main(void)
 
   ICM_calibGyro(&icm42688p_cfg);
   ICM_calibGyro(&icm40609d_cfg);
-  // ICM_calibAccel();
-  printf(PF_DEF, "688 Gyro Bias X Y Z: %0.2f %0.2f %0.2f\r\n", ICM_getGyroBiasX(&icm42688p_cfg), ICM_getGyroBiasY(&icm42688p_cfg), ICM_getGyroBiasZ(&icm42688p_cfg));
-  printf(PF_DEF, "609 Gyro Bias X Y Z: %0.2f %0.2f %0.2f\r\n", ICM_getGyroBiasX(&icm40609d_cfg), ICM_getGyroBiasY(&icm40609d_cfg), ICM_getGyroBiasZ(&icm40609d_cfg));
+  // printf(PF_DEF, "688 Gyro Bias X Y Z: %0.2f %0.2f %0.2f\r\n", ICM_getGyroBiasX(&icm42688p_cfg), ICM_getGyroBiasY(&icm42688p_cfg), ICM_getGyroBiasZ(&icm42688p_cfg));
+  // printf(PF_DEF, "609 Gyro Bias X Y Z: %0.2f %0.2f %0.2f\r\n", ICM_getGyroBiasX(&icm40609d_cfg), ICM_getGyroBiasY(&icm40609d_cfg), ICM_getGyroBiasZ(&icm40609d_cfg));
 
   /* USER CODE END 2 */
 
@@ -154,25 +156,8 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
     ICM_updateAllData(&icm42688p_cfg);
-    ICM_updateAllData(&icm40609d_cfg);
-    printf(PF_DEF, "ICM42688P\r\n");
-    printf(PF_DEF, "\tTemp: %.02f\r\n", ICM_getTemp(&icm42688p_cfg));
-    printf(PF_DEF, "\taccelX: %.02f ", ICM_getAccX(&icm42688p_cfg));
-    printf(PF_DEF, "\taccelY: %.02f ", ICM_getAccY(&icm42688p_cfg));
-    printf(PF_DEF, "\taccelZ: %.02f\r\n", ICM_getAccZ(&icm42688p_cfg));
-    printf(PF_DEF, "\tGyroX: %.02f ", ICM_getGyroX(&icm42688p_cfg));
-    printf(PF_DEF, "\tGyroY: %.02f ", ICM_getGyroY(&icm42688p_cfg));
-    printf(PF_DEF, "\tGyroZ: %.02f\r\n", ICM_getGyroZ(&icm42688p_cfg));
-    printf(PF_DEF, "ICM40609D\r\n");
-    printf(PF_DEF, "\tTemp: %.02f\r\n", ICM_getTemp(&icm40609d_cfg));
-    printf(PF_DEF, "\taccelX: %.02f ", ICM_getAccX(&icm40609d_cfg));
-    printf(PF_DEF, "\taccelY: %.02f ", ICM_getAccY(&icm40609d_cfg));
-    printf(PF_DEF, "\taccelZ: %.02f\r\n", ICM_getAccZ(&icm40609d_cfg));
-    printf(PF_DEF, "\tGyroX: %.02f ", ICM_getGyroX(&icm40609d_cfg));
-    printf(PF_DEF, "\tGyroY: %.02f ", ICM_getGyroY(&icm40609d_cfg));
-    printf(PF_DEF, "\tGyroZ: %.02f\r\n", ICM_getGyroZ(&icm40609d_cfg));
-
-    HAL_Delay(1000);
+    sendCsv(&icm42688p_cfg);
+    HAL_Delay(150);
   }
   /* USER CODE END 3 */
 }
@@ -637,6 +622,32 @@ LL_GPIO_SetOutputPin(BN_PS0_WAKE_GPIO_Port, BN_PS0_WAKE_Pin);
 }
 
 /* USER CODE BEGIN 4 */
+void sendCsv(ICM_Config_t *icm) 
+{
+  float ax, ay, az, gx, gy, gz, temp;
+  ax = ICM_getAccX(icm);
+  ay = ICM_getAccY(icm);
+  az = ICM_getAccZ(icm);
+  gx = ICM_getGyroX(icm);
+  gy = ICM_getGyroY(icm);
+  gz = ICM_getGyroZ(icm);
+  temp = ICM_getTemp(icm);
+
+  printf(PF_DEF, "%d,%.04f,%.04f,%.04f,%.04f,%.04f,%.04f\r", (int)temp, ax, ay, az, gx, gy, gz);
+}
+
+void sendVerbose(ICM_Config_t* icm)
+{
+    printf(PF_DEF, "DEV: 0x%H\r\n", icm->id);
+    printf(PF_DEF, "\tTemp: %d\r\n", (int)ICM_getTemp(icm));
+    printf(PF_DEF, "\taccelX: %.02f ", ICM_getAccX(icm));
+    printf(PF_DEF, "\taccelY: %.02f ", ICM_getAccY(icm));
+    printf(PF_DEF, "\taccelZ: %.02f\r\n", ICM_getAccZ(icm));
+    printf(PF_DEF, "\tGyroX: %.02f ", ICM_getGyroX(icm));
+    printf(PF_DEF, "\tGyroY: %.02f ", ICM_getGyroY(icm));
+    printf(PF_DEF, "\tGyroZ: %.02f\r\n", ICM_getGyroZ(icm));
+}
+
 /**
  * @brief For printf Library submodule.
  * 
